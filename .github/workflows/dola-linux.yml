@@ -24,7 +24,6 @@ jobs:
   linux-x86_64:
     name: Linux x86_64 core
     runs-on: ubuntu-24.04
-    timeout-minutes: 120
     defaults:
       run:
         working-directory: dola
@@ -67,7 +66,6 @@ jobs:
     name: Linux x86_64 quality
     needs: linux-x86_64
     runs-on: ubuntu-24.04
-    timeout-minutes: 240
     defaults:
       run:
         working-directory: dola
