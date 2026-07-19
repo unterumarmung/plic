@@ -33,10 +33,11 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6
 
-      # Follow hermetic-llvm's cache pattern: every successful commit writes a
-      # new immutable cache and subsequent commits restore the newest prefix.
-      - name: Mount Bazel disk cache
-        uses: actions/cache@v5
+      # Follow hermetic-llvm's immutable disk-cache pattern. Restore and save
+      # are separate so useful compile actions survive a later CI failure.
+      - name: Restore Bazel disk cache
+        id: bazel-cache
+        uses: actions/cache/restore@v5
         with:
           path: ~/.cache/bazel-disk
           key: dola-bazel-disk-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('dola/.bazelversion', 'dola/MODULE.bazel', 'dola/MODULE.bazel.lock', 'dola/**/BUILD.bazel', 'dola/**/*.bzl', 'dola/bazel/patches/**') }}-${{ github.sha }}-core
@@ -55,6 +56,13 @@ jobs:
         shell: bash
         run: ./ci/run_linux_x86_64.sh core
 
+      - name: Save Bazel disk cache
+        if: always() && steps.bazel-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: ~/.cache/bazel-disk
+          key: ${{ steps.bazel-cache.outputs.cache-primary-key }}
+
   linux-x86_64-quality:
     name: Linux x86_64 quality
     needs: linux-x86_64
@@ -69,7 +77,8 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Restore Bazel disk cache
-        uses: actions/cache@v5
+        id: bazel-cache
+        uses: actions/cache/restore@v5
         with:
           path: ~/.cache/bazel-disk
           key: dola-bazel-disk-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('dola/.bazelversion', 'dola/MODULE.bazel', 'dola/MODULE.bazel.lock', 'dola/**/BUILD.bazel', 'dola/**/*.bzl', 'dola/bazel/patches/**') }}-${{ github.sha }}-quality
@@ -87,3 +96,10 @@ jobs:
       - name: Validate formatting and static analysis
         shell: bash
         run: ./ci/run_linux_x86_64.sh quality
+
+      - name: Save Bazel disk cache
+        if: always() && steps.bazel-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: ~/.cache/bazel-disk
+          key: ${{ steps.bazel-cache.outputs.cache-primary-key }}

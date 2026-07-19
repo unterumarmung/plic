@@ -853,9 +853,10 @@ bool emitNativeObject(llvm::Module& module, const std::filesystem::path& path,
   llvm::TargetOptions options;
   std::unique_ptr<llvm::TargetMachine> targetMachine(
       target->createTargetMachine(triple, "generic", "", options,
-                                  std::nullopt));
+                                  llvm::Reloc::PIC_));
   module.setTargetTriple(triple);
   module.setDataLayout(targetMachine->createDataLayout());
+  module.setPICLevel(llvm::PICLevel::BigPIC);
   std::error_code fileError;
   llvm::raw_fd_ostream output(path.string(), fileError, llvm::sys::fs::OF_None);
   if (fileError) {

@@ -60,6 +60,7 @@ TEST(MlirApiTest, VerifiesLowersTranslatesAndCreatesObject) {
   std::filesystem::path objectPath =
       std::filesystem::path(temporary ? temporary : "/tmp") / "dola-smoke.o";
   EXPECT_TRUE(emitNativeObject(*llvmModule, objectPath, error)) << error;
+  EXPECT_EQ(llvmModule->getPICLevel(), llvm::PICLevel::BigPIC);
   EXPECT_FALSE(emitNativeObject(
       *llvmModule, std::filesystem::path(temporary ? temporary : "/tmp"),
       error));
