@@ -18,7 +18,10 @@ bazel_dep(name = "bazel_skylib", version = "1.9.0")
 single_version_override(
     module_name = "llvm",
     patch_strip = 1,
-    patches = ["//bazel/patches:hermetic-llvm-lit.patch"],
+    patches = [
+        "//bazel/patches:hermetic-llvm-lit.patch",
+        "//bazel/patches:hermetic-llvm-native-targets.patch",
+    ],
     version = "0.7.7",
 )
 
@@ -30,6 +33,10 @@ single_version_override(
 )
 
 llvm_project = use_extension("@llvm//extensions:llvm.bzl", "llvm")
+llvm_project.configure(targets = [
+    "AArch64",
+    "X86",
+])
 use_repo(llvm_project, "llvm-project")
 
 rust = use_extension("@rules_rs//rs/toolchains:module_extension.bzl", "toolchains")
