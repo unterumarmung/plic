@@ -1,2 +1,6 @@
 # This directory is persisted between GitHub Actions runs by actions/cache.
 common --disk_cache=~/.cache/bazel-disk
+
+# rules_rs builds host tools with the hermetic C++ linker. On Linux, provide
+# hermetic-llvm's libgcc_s compatibility stub instead of searching the host.
+common --@llvm//config:experimental_stub_libgcc_s=True
