@@ -22,9 +22,11 @@ concurrency:
 
 jobs:
   linux-x86_64:
-    name: Linux x86_64
+    name: Linux x86_64 core
     runs-on: ubuntu-24.04
     timeout-minutes: 120
+    env:
+      BAZEL_CACHE_SCOPE: dola-bazel-disk-${{ runner.os }}-${{ runner.arch }}
     defaults:
       run:
         working-directory: dola
@@ -39,9 +41,9 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ~/.cache/bazel-disk
-          key: dola-bazel-disk-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('dola/.bazelversion', 'dola/MODULE.bazel', 'dola/MODULE.bazel.lock', 'dola/**/BUILD.bazel', 'dola/**/*.bzl', 'dola/bazel/patches/**') }}-${{ github.sha }}
+          key: ${{ env.BAZEL_CACHE_SCOPE }}-${{ hashFiles('dola/.bazelversion', 'dola/MODULE.bazel', 'dola/MODULE.bazel.lock', 'dola/**/BUILD.bazel', 'dola/**/*.bzl', 'dola/bazel/patches/**') }}-${{ github.sha }}-core
           restore-keys: |
-            dola-bazel-disk-${{ runner.os }}-${{ runner.arch }}-
+            ${{ env.BAZEL_CACHE_SCOPE }}-
 
       - name: Install Bazelisk
         shell: bash
@@ -53,4 +55,39 @@ jobs:
 
       - name: Validate Dola
         shell: bash
-        run: ./ci/run_linux_x86_64.sh
+        run: ./ci/run_linux_x86_64.sh core
+
+  linux-x86_64-quality:
+    name: Linux x86_64 quality
+    needs: linux-x86_64
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    env:
+      BAZEL_CACHE_SCOPE: dola-bazel-disk-${{ runner.os }}-${{ runner.arch }}
+    defaults:
+      run:
+        working-directory: dola
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Restore Bazel disk cache
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/bazel-disk
+          key: ${{ env.BAZEL_CACHE_SCOPE }}-${{ hashFiles('dola/.bazelversion', 'dola/MODULE.bazel', 'dola/MODULE.bazel.lock', 'dola/**/BUILD.bazel', 'dola/**/*.bzl', 'dola/bazel/patches/**') }}-${{ github.sha }}-quality
+          restore-keys: |
+            ${{ env.BAZEL_CACHE_SCOPE }}-
+
+      - name: Install Bazelisk
+        shell: bash
+        env:
+          BAZELISK_VERSION: v1.29.0
+        run: |
+          ./ci/install_bazelisk.sh "${RUNNER_TEMP}/bazel"
+          echo "${RUNNER_TEMP}" >> "${GITHUB_PATH}"
+
+      - name: Validate formatting and static analysis
+        shell: bash
+        run: ./ci/run_linux_x86_64.sh quality
