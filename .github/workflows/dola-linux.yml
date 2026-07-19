@@ -25,8 +25,6 @@ jobs:
     name: Linux x86_64 core
     runs-on: ubuntu-24.04
     timeout-minutes: 120
-    env:
-      BAZEL_CACHE_SCOPE: dola-bazel-disk-${{ runner.os }}-${{ runner.arch }}
     defaults:
       run:
         working-directory: dola
@@ -41,9 +39,9 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ~/.cache/bazel-disk
-          key: ${{ env.BAZEL_CACHE_SCOPE }}-${{ hashFiles('dola/.bazelversion', 'dola/MODULE.bazel', 'dola/MODULE.bazel.lock', 'dola/**/BUILD.bazel', 'dola/**/*.bzl', 'dola/bazel/patches/**') }}-${{ github.sha }}-core
+          key: dola-bazel-disk-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('dola/.bazelversion', 'dola/MODULE.bazel', 'dola/MODULE.bazel.lock', 'dola/**/BUILD.bazel', 'dola/**/*.bzl', 'dola/bazel/patches/**') }}-${{ github.sha }}-core
           restore-keys: |
-            ${{ env.BAZEL_CACHE_SCOPE }}-
+            dola-bazel-disk-${{ runner.os }}-${{ runner.arch }}-
 
       - name: Install Bazelisk
         shell: bash
@@ -62,8 +60,6 @@ jobs:
     needs: linux-x86_64
     runs-on: ubuntu-24.04
     timeout-minutes: 240
-    env:
-      BAZEL_CACHE_SCOPE: dola-bazel-disk-${{ runner.os }}-${{ runner.arch }}
     defaults:
       run:
         working-directory: dola
@@ -76,9 +72,9 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ~/.cache/bazel-disk
-          key: ${{ env.BAZEL_CACHE_SCOPE }}-${{ hashFiles('dola/.bazelversion', 'dola/MODULE.bazel', 'dola/MODULE.bazel.lock', 'dola/**/BUILD.bazel', 'dola/**/*.bzl', 'dola/bazel/patches/**') }}-${{ github.sha }}-quality
+          key: dola-bazel-disk-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('dola/.bazelversion', 'dola/MODULE.bazel', 'dola/MODULE.bazel.lock', 'dola/**/BUILD.bazel', 'dola/**/*.bzl', 'dola/bazel/patches/**') }}-${{ github.sha }}-quality
           restore-keys: |
-            ${{ env.BAZEL_CACHE_SCOPE }}-
+            dola-bazel-disk-${{ runner.os }}-${{ runner.arch }}-
 
       - name: Install Bazelisk
         shell: bash
