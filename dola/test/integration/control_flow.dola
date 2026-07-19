@@ -1,0 +1,18 @@
+module test.control_flow;
+
+fn main() -> Int {
+    var explicit = 0;
+    loop {
+        explicit = explicit + 1;
+        if explicit < 3 { continue; };
+        break;
+    };
+    var total = 0;
+    for value in 0..6 {
+        if value == 2 { continue; };
+        if value == 5 { break; };
+        total = total + value;
+    };
+    while total < 8 { total = total + 1; };
+    if total == 8 && explicit == 3 { 0 } else { 1 }
+}

@@ -1,0 +1,5 @@
+// RUN: not dola --check %s 2>&1 | FileCheck --strict-whitespace %s
+// CHECK: missing_module.dola:[[@LINE+3]]:1: error: mismatched input 'fn' expecting 'module'
+// CHECK-NEXT:     fn main() {}
+// CHECK-NEXT:     ^^
+fn main() {}

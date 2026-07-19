@@ -1,0 +1,9 @@
+// RUN: not dola --check %s 2>&1 | FileCheck --strict-whitespace %s
+module test.diagnostics;
+
+fn main() {
+// CHECK: diagnostics.dola:[[@LINE+3]]:25: error: expected `String`, found `Int`
+// CHECK-NEXT:         let value: String = 42;
+// CHECK-NEXT:                             ^^
+    let value: String = 42;
+}

@@ -1,0 +1,5 @@
+module test.math;
+
+pub fn answer() -> Int {
+    21 * 2
+}

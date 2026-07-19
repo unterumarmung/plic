@@ -1,0 +1,43 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+filegroup(
+    name = "format_sources",
+    srcs = glob(["*.cpp", "*.h"]),
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "lowering",
+    srcs = ["lowering.cpp"],
+    hdrs = ["lowering.h"],
+    include_prefix = "dola",
+    strip_include_prefix = ".",
+    deps = [
+        "//compiler/mlir:dialect",
+        "@llvm-project//llvm:Core",
+        "@llvm-project//llvm:MC",
+        "@llvm-project//llvm:Support",
+        "@llvm-project//llvm:Target",
+        "@llvm-project//mlir:ArithToLLVM",
+        "@llvm-project//mlir:ArithDialect",
+        "@llvm-project//mlir:BuiltinToLLVMIRTranslation",
+        "@llvm-project//mlir:ControlFlowToLLVM",
+        "@llvm-project//mlir:ControlFlowDialect",
+        "@llvm-project//mlir:FuncToLLVM",
+        "@llvm-project//mlir:FuncDialect",
+        "@llvm-project//mlir:LLVMCommonConversion",
+        "@llvm-project//mlir:LLVMDialect",
+        "@llvm-project//mlir:LLVMToLLVMIRTranslation",
+        "@llvm-project//mlir:MemRefToLLVM",
+        "@llvm-project//mlir:MemRefDialect",
+        "@llvm-project//mlir:Pass",
+        "@llvm-project//mlir:SCFToControlFlow",
+        "@llvm-project//mlir:SCFDialect",
+        "@llvm-project//mlir:Transforms",
+    ] + select({
+        "@platforms//cpu:aarch64": ["@llvm-project//llvm:AArch64CodeGen"],
+        "@platforms//cpu:x86_64": ["@llvm-project//llvm:X86CodeGen"],
+        "//conditions:default": ["@llvm-project//llvm:AllTargetsCodeGens"],
+    }),
+    visibility = ["//visibility:public"],
+)

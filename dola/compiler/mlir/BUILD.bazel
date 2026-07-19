@@ -1,0 +1,68 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+filegroup(
+    name = "format_sources",
+    srcs = glob(["*.cpp", "*.h"]),
+    visibility = ["//visibility:public"],
+)
+load("@llvm-project//mlir:tblgen.bzl", "gentbl_cc_library")
+
+gentbl_cc_library(
+    name = "dola_inc_gen",
+    tbl_outs = [
+        (["-gen-dialect-decls", "-dialect=dola"], "dola_dialect.h.inc"),
+        (["-gen-dialect-defs", "-dialect=dola"], "dola_dialect.cpp.inc"),
+        (["-gen-typedef-decls"], "dola_types.h.inc"),
+        (["-gen-typedef-defs"], "dola_types.cpp.inc"),
+        (["-gen-op-decls"], "dola_ops.h.inc"),
+        (["-gen-op-defs"], "dola_ops.cpp.inc"),
+    ],
+    tblgen = "@llvm-project//mlir:mlir-tblgen",
+    td_file = "dola_dialect.td",
+    deps = [
+        "@llvm-project//mlir:OpBaseTdFiles",
+        "@llvm-project//mlir:SideEffectInterfacesTdFiles",
+    ],
+)
+
+cc_library(
+    name = "dialect",
+    srcs = [
+        "dola_dialect.cpp",
+        "runtime_operations.cpp",
+    ],
+    hdrs = [
+        "dola_dialect.h",
+        "runtime_operations.h",
+    ],
+    include_prefix = "dola",
+    strip_include_prefix = ".",
+    deps = [
+        ":dola_inc_gen",
+        "//runtime:codegen_operations",
+        "@llvm-project//mlir:BytecodeOpInterface",
+        "@llvm-project//mlir:FuncDialect",
+        "@llvm-project//mlir:IR",
+        "@llvm-project//mlir:SideEffectInterfaces",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "mlir_gen",
+    srcs = ["mlir_gen.cpp"],
+    hdrs = ["mlir_gen.h"],
+    include_prefix = "dola",
+    strip_include_prefix = ".",
+    deps = [
+        ":dialect",
+        "//compiler/sema",
+        "@llvm-project//mlir:ArithDialect",
+        "@llvm-project//mlir:ControlFlowDialect",
+        "@llvm-project//mlir:FuncDialect",
+        "@llvm-project//mlir:IR",
+        "@llvm-project//mlir:MemRefDialect",
+        "@llvm-project//mlir:SCFDialect",
+    ],
+    visibility = ["//visibility:public"],
+)

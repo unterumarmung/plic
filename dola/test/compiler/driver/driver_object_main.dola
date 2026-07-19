@@ -1,0 +1,2 @@
+module negative.driver_object;
+fn main() {}

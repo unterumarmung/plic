@@ -1,0 +1,43 @@
+module test.task_panic;
+
+fn fail() -> Int {
+  panic("task failed")
+}
+
+fn divide() -> Int {
+  1 / 0
+}
+
+fn succeed() -> Int {
+  42
+}
+
+fn main() -> Int {
+  let failed = spawn fail();
+  let divided = spawn divide();
+  let sibling = spawn succeed();
+  let first = failed.join();
+  let repeated = failed.join();
+  let division = divided.join();
+  let success = sibling.join();
+  match first {
+    Ok(_) => 1,
+    Err(TaskError.Panic(first_message)) => match repeated {
+      Ok(_) => 2,
+      Err(TaskError.Panic(repeated_message)) => match division {
+        Ok(_) => 3,
+        Err(TaskError.Panic(division_message)) => match success {
+          Err(_) => 4,
+          Ok(value) => if first_message == "task failed" &&
+                          repeated_message == "task failed" &&
+                          division_message == "invalid integer division" &&
+                          value == 42 {
+            0
+          } else {
+            5
+          },
+        },
+      },
+    },
+  }
+}

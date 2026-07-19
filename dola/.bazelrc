@@ -1,0 +1,15 @@
+common --enable_bzlmod
+common --enable_platform_specific_config
+common:linux --host_platform=//platforms:local_gnu
+common:linux --platforms=//platforms:local_gnu
+build --per_file_copt=^(compiler|tools|test|runtime)/.*\\.(cc|cpp|cxx)$@-std=c++23,-Wno-deprecated-declarations
+build --host_per_file_copt=^(compiler|tools|test|runtime)/.*\\.(cc|cpp|cxx)$@-std=c++23,-Wno-deprecated-declarations
+build --per_file_copt=.*ProgramStack\\.cpp@-include,cstdlib
+build --host_per_file_copt=.*ProgramStack\\.cpp@-include,cstdlib
+build --incompatible_enable_cc_toolchain_resolution
+# The hermetic LLVM source overlay's module map references the builtin-header
+# umbrella without declaring it as an input. Clang still has the builtin include
+# path, so keep this overlay-only warning nonfatal in target and exec configs.
+build --host_per_file_copt=.*clang-tidy/.*@-Wno-error=incomplete-umbrella
+build --per_file_copt=.*clang-tidy/.*@-Wno-error=incomplete-umbrella
+test --test_output=errors

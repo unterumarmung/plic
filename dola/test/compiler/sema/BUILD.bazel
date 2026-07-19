@@ -1,0 +1,42 @@
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+load("//bazel:lit.bzl", "lit_test_suite")
+
+filegroup(
+    name = "format_sources",
+    srcs = glob(["*.cpp", "*.h"], allow_empty = True),
+    visibility = ["//visibility:public"],
+)
+
+cc_test(
+    name = "sema_test",
+    srcs = ["sema_test.cpp"],
+    deps = [
+        "//compiler/sema",
+        "//compiler/support",
+        "//compiler/syntax",
+        "@googletest//:gtest_main",
+    ],
+    visibility = ["//:__pkg__"],
+)
+
+lit_test_suite(
+    name = "lit_tests",
+    srcs = [
+        "aggregate_pattern_diagnostics.dola",
+        "aggregate_diagnostics.dola",
+        "call_collection_diagnostics.dola",
+        "control_result_diagnostics.dola",
+        "declaration_diagnostics.dola",
+        "diagnostic_ordering.dola",
+        "diagnostics.dola",
+        "type_operator_diagnostics.dola",
+        "text_loop_diagnostics.dola",
+        "concurrency_transport_diagnostics.dola",
+    ],
+    cfg = "//test:lit.cfg.py",
+    data = ["diagnostic_ordering_aux.dola"],
+    tools = [
+        "//tools/dola",
+        "@llvm-project//llvm:FileCheck",
+    ],
+)

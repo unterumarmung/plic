@@ -1,0 +1,18 @@
+// RUN: dola --emit-mlir %s | FileCheck %s --check-prefix=HIGH
+// RUN: dola --emit-lowered-mlir %s | FileCheck %s --check-prefix=LOW
+// HIGH: arith.cmpi eq
+// HIGH: cf.cond_br
+// HIGH: dola.panic
+// HIGH: arith.divsi
+// LOW-NOT: dola.
+// LOW: llvm.call @dola_rt_codegen_context_set_panic
+// LOW: llvm.sdiv
+module test.division;
+
+fn quotient(left: Int, right: Int) -> Int {
+    left / right
+}
+
+fn main() -> Int {
+    quotient(-9223372036854775808, -1)
+}

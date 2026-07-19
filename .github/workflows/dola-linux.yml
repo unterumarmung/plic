@@ -1,0 +1,46 @@
+name: Dola Linux x86_64
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/dola-linux.yml"
+      - "dola/**"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/dola-linux.yml"
+      - "dola/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dola-linux-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linux-x86_64:
+    name: Linux x86_64
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    defaults:
+      run:
+        working-directory: dola
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Bazelisk
+        shell: bash
+        env:
+          BAZELISK_VERSION: v1.29.0
+        run: |
+          ./ci/install_bazelisk.sh "${RUNNER_TEMP}/bazel"
+          echo "${RUNNER_TEMP}" >> "${GITHUB_PATH}"
+
+      - name: Validate Dola
+        shell: bash
+        run: ./ci/run_linux_x86_64.sh

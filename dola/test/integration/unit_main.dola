@@ -1,0 +1,6 @@
+module test.unit_main;
+use std.io;
+
+fn main() {
+    io.println("unit main ran");
+}

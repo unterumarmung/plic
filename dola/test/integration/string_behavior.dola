@@ -1,0 +1,24 @@
+module test.string_behavior;
+use std.io;
+
+fn identity(value: String) -> String {
+    value
+}
+
+fn main() -> Int {
+    var message = identity("first");
+    message = "second";
+    let combined = "" + message + " " + "λ";
+    let minimum = -9223372036854775808;
+    let maximum = 9223372036854775807;
+    if combined == "second λ" &&
+       0.to_string() == "0" &&
+       (-42).to_string() == "-42" &&
+       minimum.to_string() == "-9223372036854775808" &&
+       maximum.to_string() == "9223372036854775807" {
+        io.println(combined);
+        0
+    } else {
+        1
+    }
+}

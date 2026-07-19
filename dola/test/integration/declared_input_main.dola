@@ -1,0 +1,6 @@
+module test.declared_input_main;
+use test.declared_input_dependency;
+
+fn main() -> Int {
+    declared_input_dependency.answer()
+}

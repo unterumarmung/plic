@@ -1,0 +1,27 @@
+module examples.concurrency;
+
+use std.io;
+
+fn increment(value: Int) -> Int {
+  value + 1
+}
+
+fn main() -> Unit {
+  let endpoints = channel[Int]();
+  let sender = endpoints.0;
+  let receiver = endpoints.1;
+  let task = spawn increment(41);
+  let joined = task.join();
+  let sent = sender.send(42);
+  sender.close();
+  let received = receiver.receive();
+  match received {
+    Some(value) => if value == 42 { io.println("channel: ok") } else { () },
+    None => (),
+  };
+  match joined {
+    Ok(value) => if value == 42 { io.println("task: ok") } else { () },
+    Err(TaskError.Panic(message)) => io.println(message),
+  };
+  io.println("concurrency complete");
+}

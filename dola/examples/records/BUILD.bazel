@@ -1,0 +1,6 @@
+load("//bazel:dola_rules.bzl", "dola_binary")
+
+dola_binary(
+    name = "records",
+    srcs = ["records.dola"],
+)

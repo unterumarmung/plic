@@ -1,0 +1,43 @@
+diff --git a/extensions/llvm_source.bzl b/extensions/llvm_source.bzl
+index 1111111..2222222 100644
+--- a/extensions/llvm_source.bzl
++++ b/extensions/llvm_source.bzl
+@@ -43,6 +43,7 @@ _LLVM_22_SOURCE_PATCHES = _DEFAULT_SOURCE_PATCHES + [
+     "//3rd_party/llvm-project/22.x/patches:llvm-windows-stack-size.patch",
+     "//3rd_party/llvm-project/22.x/patches:libcxx-lgamma_r.patch",
+     "//3rd_party/llvm-project/22.x/patches:llvm-bazel-blake3-windows-gnu.patch",
++    "//3rd_party/llvm-project/22.x/patches:dola-lit.patch",
+ ]
+ 
+ _LLVM_PATCHES_BY_MAJOR = {
+diff --git a/3rd_party/llvm-project/22.x/patches/dola-lit.patch b/3rd_party/llvm-project/22.x/patches/dola-lit.patch
+new file mode 100644
+index 0000000..3333333
+--- /dev/null
++++ b/3rd_party/llvm-project/22.x/patches/dola-lit.patch
+@@ -0,0 +1,25 @@
++diff --git a/utils/bazel/llvm-project-overlay/llvm/BUILD.bazel b/utils/bazel/llvm-project-overlay/llvm/BUILD.bazel
++index 1111111..2222222 100644
++--- a/utils/bazel/llvm-project-overlay/llvm/BUILD.bazel
+++++ b/utils/bazel/llvm-project-overlay/llvm/BUILD.bazel
++@@ -6,6 +6,7 @@ load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
++ load("@bazel_skylib//rules:expand_template.bzl", "expand_template")
++ load("@bazel_skylib//rules:write_file.bzl", "write_file")
++ load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+++load("@rules_python//python:defs.bzl", "py_binary")
++ load("@rules_shell//shell:sh_binary.bzl", "sh_binary")
++ load("//mlir:tblgen.bzl", "gentbl_cc_library", "gentbl_filegroup", "td_library")
++ load(":binary_alias.bzl", "binary_alias")
++@@ -36,6 +37,12 @@ exports_files([
++     "utils/lldbDataFormatters.py",
++ ])
++ 
+++py_binary(
+++    name = "lit",
+++    srcs = ["utils/lit/lit.py"] + glob(["utils/lit/lit/**/*.py"]),
+++    imports = ["utils/lit"],
+++)
+++
++ # It may be tempting to add compiler flags here, but that should be avoided.
++ # The necessary warnings and other compile flags should be provided by the
++ # toolchain or the `.bazelrc` file. This is just a workaround until we have a

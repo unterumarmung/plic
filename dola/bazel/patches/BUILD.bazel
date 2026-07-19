@@ -1,0 +1,4 @@
+exports_files([
+    "googletest-bazel9.patch",
+    "hermetic-llvm-lit.patch",
+])

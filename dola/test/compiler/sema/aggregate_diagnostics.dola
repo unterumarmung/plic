@@ -1,0 +1,18 @@
+// RUN: not dola --check %s 2>&1 | FileCheck --strict-whitespace %s
+module test.aggregate_diagnostics;
+record Pair { left: Int, right: Int, }
+enum Choice { A, B, }
+
+fn missing_field() {
+// CHECK: aggregate_diagnostics.dola:[[@LINE+3]]:5: error: missing record field `right`
+// CHECK-NEXT:         Pair { left: 1 };
+// CHECK-NEXT:         ^^^^
+    Pair { left: 1 };
+}
+
+fn missing_arm() {
+// CHECK-NEXT: aggregate_diagnostics.dola:[[@LINE+3]]:5: error: non-exhaustive match, missing `B`
+// CHECK-NEXT:         match Choice.A { Choice.A => 0, };
+// CHECK-NEXT:         ^^^^^
+    match Choice.A { Choice.A => 0, };
+}

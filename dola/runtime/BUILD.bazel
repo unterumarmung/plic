@@ -1,0 +1,67 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+load("@rules_python//python:defs.bzl", "py_binary")
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_static_library")
+
+filegroup(
+    name = "format_sources",
+    srcs = ["dola_runtime.h"],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "codegen_operations",
+    hdrs = ["codegen_operations.def"],
+    include_prefix = "runtime",
+    strip_include_prefix = ".",
+    visibility = ["//visibility:public"],
+)
+
+py_binary(
+    name = "generate_codegen_operations",
+    srcs = ["generate_codegen_operations.py"],
+    main = "generate_codegen_operations.py",
+    python_version = "PY3",
+)
+
+genrule(
+    name = "codegen_operations_rs",
+    srcs = ["codegen_operations.def"],
+    outs = ["src/codegen_operations.rs"],
+    cmd = "$(location :generate_codegen_operations) $(location codegen_operations.def) $@",
+    tools = [":generate_codegen_operations"],
+)
+
+rust_library(
+    name = "runtime_lib",
+    srcs = glob(["src/*.rs"]) + [":codegen_operations_rs"],
+    edition = "2024",
+    rustc_flags = [
+        "-Dwarnings",
+        "-Dclippy::all",
+    ],
+    visibility = [
+        "//:__pkg__",
+        "//test/runtime:__pkg__",
+    ],
+)
+
+rust_static_library(
+    name = "runtime",
+    srcs = glob(["src/*.rs"]) + [":codegen_operations_rs"],
+    edition = "2024",
+    rustc_flags = [
+        "-Dwarnings",
+        "-Dclippy::all",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "runtime_header",
+    hdrs = [
+        "codegen_operations.def",
+        "dola_runtime.h",
+    ],
+    includes = ["."],
+    visibility = ["//visibility:public"],
+)

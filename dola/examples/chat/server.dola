@@ -1,0 +1,305 @@
+module chat.server;
+
+use chat.protocol;
+use std.io;
+use std.time;
+use std.transport;
+
+record Client {
+  name: String,
+  events: Sender[protocol.ServerMessage],
+}
+
+enum RoomCommand {
+  Join(Int, String, Sender[protocol.ServerMessage], Sender[Bool]),
+  Post(Int, String),
+  History(Int, Int),
+  Users(Int),
+  Direct(Int, String, String),
+  Leave(Int),
+}
+
+fn broadcast(clients: Map[Int, Client], event: protocol.ServerMessage) -> Unit {
+  for entry in clients.entries() {
+    let client = entry.1;
+    let sent = client.events.send(event);
+  }
+}
+
+fn valid_name(name: String) -> Bool {
+  if name.length() < 1 || name.length() > 32 {
+    return false;
+  };
+  match name.split_once(" ") {
+    Some(_) => false,
+    None => true,
+  }
+}
+
+fn name_is_available(clients: Map[Int, Client], name: String) -> Bool {
+  for entry in clients.entries() {
+    if entry.1.name == name {
+      return false;
+    };
+  }
+  true
+}
+
+fn reject_client(client: Client, message: String) -> Unit {
+  let rejected = client.events.send(protocol.ServerMessage.Rejected(message));
+}
+
+fn send_users(clients: Map[Int, Client], id: Int) -> Unit {
+  match clients.get(id) {
+    None => (),
+    Some(client) => {
+      var users = List[protocol.UserSummary]();
+      for entry in clients.entries() {
+        users = users.push(protocol.UserSummary {
+          id: entry.0,
+          name: entry.1.name,
+        });
+      }
+      let sent = client.events.send(protocol.ServerMessage.Users(users));
+    },
+  }
+}
+
+fn send_direct(
+  clients: Map[Int, Client],
+  sender_id: Int,
+  target_name: String,
+  text: String
+) -> Unit {
+  match clients.get(sender_id) {
+    None => (),
+    Some(sender) => if target_name == "" || text == "" {
+      reject_client(sender, "malformed direct message");
+    } else if text.length() > 4096 {
+      reject_client(sender, "message exceeds 4096 bytes");
+    } else {
+      var target_id: Option[Int] = None;
+      for entry in clients.entries() {
+        if entry.1.name == target_name {
+          target_id = Some(entry.0);
+        };
+      }
+      match target_id {
+        None => reject_client(sender, "direct-message recipient not found"),
+        Some(recipient_id) => match clients.get(recipient_id) {
+          None => reject_client(sender, "direct-message recipient not found"),
+          Some(recipient) => {
+            let event = protocol.ServerMessage.DirectMessage(
+              sender_id,
+              sender.name,
+              text
+            );
+            let echoed = sender.events.send(event);
+            if recipient_id != sender_id {
+              let delivered = recipient.events.send(event);
+            } else {
+              ()
+            };
+          },
+        },
+      }
+    },
+  }
+}
+
+fn run_room(commands: Receiver[RoomCommand]) -> Unit {
+  var clients = Map[Int, Client]();
+  var history = List[protocol.Message]();
+  var running = true;
+  while running {
+    match commands.receive() {
+      None => { running = false; },
+      Some(command) => match command {
+        RoomCommand.Join(id, name, events, response) => {
+          if name_is_available(clients, name) {
+            let client = Client { name: name, events: events };
+            clients = clients.insert(id, client);
+            let joined = events.send(protocol.ServerMessage.Joined(id));
+            broadcast(clients, protocol.ServerMessage.UserJoined(id, name));
+            let accepted = response.send(true);
+          } else {
+            let rejected = events.send(
+              protocol.ServerMessage.Rejected("name is already in use")
+            );
+            let accepted = response.send(false);
+          };
+          response.close();
+        },
+        RoomCommand.Post(id, text) => match clients.get(id) {
+          None => (),
+          Some(client) => if text.length() > 4096 {
+            reject_client(client, "message exceeds 4096 bytes");
+          } else {
+            let message = protocol.Message {
+              author_id: id,
+              author_name: client.name,
+              text: text,
+              timestamp: time.unix_seconds(),
+            };
+            history = history.push(message);
+            if history.length() > 100 {
+              match history.remove_at(0) {
+                Ok(trimmed) => { history = trimmed; },
+                Err(_) => (),
+              };
+            } else {
+              ()
+            };
+            broadcast(clients, protocol.ServerMessage.MessagePosted(message));
+          },
+        },
+        RoomCommand.History(id, count) => match clients.get(id) {
+          None => (),
+          Some(client) => if count < 0 {
+            let rejected = client.events.send(
+              protocol.ServerMessage.Rejected("history count must not be negative")
+            );
+          } else {
+            let recent = history.take_last(count);
+            let sent = client.events.send(
+              protocol.ServerMessage.HistoryResult(recent)
+            );
+          },
+        },
+        RoomCommand.Users(id) => send_users(clients, id),
+        RoomCommand.Direct(id, target, text) => {
+          send_direct(clients, id, target, text);
+        },
+        RoomCommand.Leave(id) => match clients.get(id) {
+          None => (),
+          Some(client) => {
+            clients = clients.remove(id);
+            broadcast(clients, protocol.ServerMessage.UserLeft(id));
+          },
+        },
+      },
+    };
+  }
+}
+
+fn write_events(
+  connection: Connection[protocol.ClientMessage, protocol.ServerMessage],
+  events: Receiver[protocol.ServerMessage]
+) -> Unit {
+  var running = true;
+  while running {
+    match events.receive() {
+      None => { running = false; },
+      Some(event) => match connection.send(event) {
+        Ok(_) => (),
+        Err(_) => { running = false; },
+      },
+    };
+  }
+}
+
+fn reject(events: Sender[protocol.ServerMessage], message: String) -> Unit {
+  let sent = events.send(protocol.ServerMessage.Rejected(message));
+}
+
+fn handle_connection(
+  connection: Connection[protocol.ClientMessage, protocol.ServerMessage],
+  id: Int,
+  commands: Sender[RoomCommand]
+) -> Unit {
+  let endpoints = channel[protocol.ServerMessage]();
+  let events = endpoints.0;
+  let output = endpoints.1;
+  let writer = spawn write_events(connection, output);
+  var joined = false;
+  var running = true;
+  while running {
+    match connection.receive() {
+      Err(_) => { running = false; },
+      Ok(None) => { running = false; },
+      Ok(Some(message)) => match message {
+        protocol.ClientMessage.Join(name) => if joined {
+          reject(events, "already joined");
+        } else if !valid_name(name) {
+          reject(events, "name must be 1-32 bytes without spaces");
+        } else {
+          let response_endpoints = channel[Bool]();
+          let response = response_endpoints.0;
+          let accepted = response_endpoints.1;
+          let sent = commands.send(RoomCommand.Join(id, name, events, response));
+          match accepted.receive() {
+            Some(value) => { joined = value; },
+            None => { running = false; },
+          };
+        },
+        protocol.ClientMessage.Post(text) => if joined {
+          let sent = commands.send(RoomCommand.Post(id, text));
+        } else {
+          reject(events, "join before posting");
+        },
+        protocol.ClientMessage.History(count) => if joined {
+          let sent = commands.send(RoomCommand.History(id, count));
+        } else {
+          reject(events, "join before requesting history");
+        },
+        protocol.ClientMessage.Users => if joined {
+          let sent = commands.send(RoomCommand.Users(id));
+        } else {
+          reject(events, "join before requesting users");
+        },
+        protocol.ClientMessage.Direct(target, text) => if joined {
+          let sent = commands.send(RoomCommand.Direct(id, target, text));
+        } else {
+          reject(events, "join before sending direct messages");
+        },
+        protocol.ClientMessage.Leave => { running = false; },
+      },
+    };
+  }
+  if joined {
+    let left = commands.send(RoomCommand.Leave(id));
+  } else {
+    ()
+  };
+  events.close();
+  connection.close();
+  let completed = writer.join();
+}
+
+fn serve(
+  listener: Listener[protocol.ClientMessage, protocol.ServerMessage]
+) -> Unit {
+  match listener.local_address() {
+    Ok(address) => {
+      io.print("CHAT_LISTENING ");
+      io.println(address);
+    },
+    Err(_) => io.println("CHAT_LISTEN_FAILED"),
+  };
+  let endpoints = channel[RoomCommand]();
+  let commands = endpoints.0;
+  let room_commands = endpoints.1;
+  let room = spawn run_room(room_commands);
+  var next_id = 1;
+  var running = true;
+  while running {
+    match listener.accept() {
+      Ok(connection) => {
+        let handler = spawn handle_connection(connection, next_id, commands);
+        next_id = next_id + 1;
+      },
+      Err(_) => { running = false; },
+    };
+  }
+  commands.close();
+  let completed = room.join();
+}
+
+fn main() -> Unit {
+  match transport.listen[protocol.ClientMessage, protocol.ServerMessage](
+    "127.0.0.1:0"
+  ) {
+    Ok(listener) => serve(listener),
+    Err(_) => io.println("CHAT_LISTEN_FAILED"),
+  };
+}

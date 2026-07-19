@@ -1,0 +1,5 @@
+# Parser-to-AST construction deliberately follows each grammar production's
+# aggregate field order. Repeating every transparent AST field name makes those
+# builders substantially harder to scan without adding type or lifetime safety.
+InheritParentConfig: true
+Checks: '-modernize-use-designated-initializers'

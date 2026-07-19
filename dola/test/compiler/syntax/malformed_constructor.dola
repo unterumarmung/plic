@@ -1,0 +1,8 @@
+// RUN: not dola --check %s 2>&1 | FileCheck --strict-whitespace %s
+module syntax.malformed_constructor;
+fn bad() {
+// CHECK: malformed_constructor.dola:[[@LINE+3]]:28: error: extraneous input '1' expecting ')'
+// CHECK-NEXT:         let values = List[Int](1);
+// CHECK-NEXT:                                ^
+    let values = List[Int](1);
+}

@@ -1,0 +1,10 @@
+module test.result_main_success;
+
+fn value() -> Result[Int, String] {
+    Ok(7)
+}
+
+fn main() -> Result[Unit, String] {
+    let number = value()?;
+    if number == 7 { Ok(()) } else { Err("wrong value") }
+}

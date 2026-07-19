@@ -1,0 +1,9 @@
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "antlr4.BUILD.bazel",
+    "dola_rules.bzl",
+    "lit.bzl",
+    "lit_runner.sh",
+    "quality_pass.sh",
+])

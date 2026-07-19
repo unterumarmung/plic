@@ -1,0 +1,12 @@
+module test.options_results;
+
+fn unwrap(value: Option[Int]) -> Int {
+    match value { None => 0, Some(number) => number, }
+}
+
+fn pass(value: Result[Int, String]) -> Result[Int, String] { Ok(value? + 1) }
+
+fn main() -> Int {
+    let result: Result[Int, String] = Ok(41);
+    match pass(result) { Ok(value) => value - 42, Err(_) => 1, }
+}

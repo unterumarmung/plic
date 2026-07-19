@@ -1,0 +1,24 @@
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+
+filegroup(
+    name = "format_sources",
+    srcs = ["main.cpp"],
+    visibility = ["//visibility:public"],
+)
+
+cc_binary(
+    name = "dola",
+    srcs = ["main.cpp"],
+    deps = [
+        "//compiler/driver:compiler_driver",
+        "//compiler/driver:driver_options",
+        "@llvm-project//llvm:Support",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "tool",
+    actual = ":dola",
+    visibility = ["//visibility:public"],
+)

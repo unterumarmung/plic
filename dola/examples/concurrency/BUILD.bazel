@@ -1,0 +1,8 @@
+load("//bazel:dola_rules.bzl", "dola_binary")
+
+exports_files(["concurrency.dola"])
+
+dola_binary(
+    name = "concurrency",
+    srcs = ["concurrency.dola"],
+)
