@@ -31,7 +31,17 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
+
+      # Follow hermetic-llvm's cache pattern: every successful commit writes a
+      # new immutable cache and subsequent commits restore the newest prefix.
+      - name: Mount Bazel disk cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/bazel-disk
+          key: dola-bazel-disk-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('dola/.bazelversion', 'dola/MODULE.bazel', 'dola/MODULE.bazel.lock', 'dola/**/BUILD.bazel', 'dola/**/*.bzl', 'dola/bazel/patches/**') }}-${{ github.sha }}
+          restore-keys: |
+            dola-bazel-disk-${{ runner.os }}-${{ runner.arch }}-
 
       - name: Install Bazelisk
         shell: bash

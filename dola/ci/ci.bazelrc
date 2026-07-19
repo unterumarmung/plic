@@ -1,0 +1,2 @@
+# This directory is persisted between GitHub Actions runs by actions/cache.
+common --disk_cache=~/.cache/bazel-disk
