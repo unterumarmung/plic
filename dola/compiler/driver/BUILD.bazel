@@ -1,0 +1,44 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+filegroup(
+    name = "format_sources",
+    srcs = glob(["*.cpp", "*.h"]),
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "driver_options",
+    srcs = ["driver_options.cpp"],
+    hdrs = ["driver_options.h"],
+    include_prefix = "dola",
+    strip_include_prefix = ".",
+    deps = ["@llvm-project//llvm:Support"],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "compiler_driver",
+    srcs = ["compiler_driver.cpp"],
+    hdrs = ["compiler_driver.h"],
+    include_prefix = "dola",
+    strip_include_prefix = ".",
+    deps = [
+        ":driver_options",
+        "//compiler/lowering",
+        "//compiler/mlir:dialect",
+        "//compiler/mlir:mlir_gen",
+        "//compiler/sema",
+        "//compiler/support",
+        "//compiler/syntax",
+        "@llvm-project//llvm:Core",
+        "@llvm-project//llvm:Support",
+        "@llvm-project//mlir:ArithDialect",
+        "@llvm-project//mlir:ControlFlowDialect",
+        "@llvm-project//mlir:FuncDialect",
+        "@llvm-project//mlir:IR",
+        "@llvm-project//mlir:LLVMDialect",
+        "@llvm-project//mlir:MemRefDialect",
+        "@llvm-project//mlir:SCFDialect",
+    ],
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,227 @@
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+load("@rules_python//python:defs.bzl", "py_test")
+load("//bazel:dola_rules.bzl", "dola_binary", "dola_library", "dola_test")
+load(":dola_compile_failure_test.bzl", "dola_compile_failure_test")
+
+py_test(
+    name = "chat_execution_test",
+    srcs = [
+        "chat_execution_test.py",
+        "process_harness.py",
+    ],
+    args = [
+        "$(location //examples/chat:server)",
+        "$(location //examples/chat:client)",
+    ],
+    data = [
+        "//examples/chat:client",
+        "//examples/chat:server",
+    ],
+    python_version = "PY3",
+    timeout = "short",
+)
+
+py_test(
+    name = "chat_stress_test",
+    srcs = [
+        "chat_stress_test.py",
+        "process_harness.py",
+    ],
+    args = [
+        "$(location //examples/chat:server)",
+        "$(location //examples/chat:client)",
+    ],
+    data = [
+        "//examples/chat:client",
+        "//examples/chat:server",
+    ],
+    python_version = "PY3",
+    timeout = "long",
+)
+
+dola_test(
+    name = "arithmetic_execution_test",
+    srcs = ["//examples/arithmetic:arithmetic.dola"],
+)
+
+dola_library(
+    name = "declared_input_dependency",
+    srcs = ["declared_input_dependency.dola"],
+)
+
+dola_compile_failure_test(
+    name = "undeclared_import_compile_test",
+    srcs = ["declared_input_main.dola"],
+    expected = "unknown module `test.declared_input_dependency`",
+)
+
+dola_compile_failure_test(
+    name = "declared_import_compile_test",
+    srcs = ["declared_input_main.dola"],
+    deps = [":declared_input_dependency"],
+    should_fail = False,
+)
+
+dola_test(
+    name = "numeric_behavior_test",
+    srcs = ["numeric_behavior.dola"],
+)
+
+dola_test(
+    name = "string_behavior_test",
+    srcs = ["string_behavior.dola"],
+)
+
+dola_test(name = "aggregate_execution_test", srcs = ["aggregates.dola"])
+dola_test(name = "collection_execution_test", srcs = ["collections.dola"])
+dola_test(name = "control_flow_execution_test", srcs = ["control_flow.dola"])
+dola_test(name = "option_result_execution_test", srcs = ["options_results.dola"])
+
+dola_test(
+    name = "result_main_success_test",
+    srcs = ["result_main_success.dola"],
+)
+
+dola_binary(
+    name = "result_main_failure_program",
+    srcs = ["result_main_failure.dola"],
+    testonly = True,
+)
+
+sh_test(
+    name = "result_main_failure_test",
+    srcs = ["expect_failure.sh"],
+    args = ["$(location :result_main_failure_program)"],
+    data = [":result_main_failure_program"],
+)
+
+dola_binary(
+    name = "main_panic_program",
+    srcs = ["main_panic.dola"],
+    testonly = True,
+)
+
+sh_test(
+    name = "main_panic_test",
+    srcs = ["expect_failure_output.sh"],
+    args = [
+        "$(location :main_panic_program)",
+        "panic: main failed",
+    ],
+    data = [":main_panic_program"],
+)
+
+dola_test(
+    name = "task_panic_test",
+    srcs = ["task_panic.dola"],
+)
+
+dola_binary(
+    name = "concurrency_program",
+    srcs = ["//examples/concurrency:concurrency.dola"],
+    testonly = True,
+)
+
+sh_test(
+    name = "concurrency_execution_test",
+    srcs = ["expect_contains.sh"],
+    args = [
+        "$(location :concurrency_program)",
+        "concurrency complete",
+    ],
+    data = [":concurrency_program"],
+)
+
+dola_binary(
+    name = "typed_transport_program",
+    srcs = ["//examples/transport:transport.dola"],
+    testonly = True,
+)
+
+sh_test(
+    name = "typed_transport_execution_test",
+    srcs = ["expect_contains.sh"],
+    args = [
+        "$(location :typed_transport_program)",
+        "transport complete",
+    ],
+    data = [":typed_transport_program"],
+)
+
+dola_binary(
+    name = "negative_take_last_program",
+    srcs = ["negative_take_last.dola"],
+    testonly = True,
+)
+
+sh_test(
+    name = "negative_take_last_test",
+    srcs = ["expect_failure.sh"],
+    args = ["$(location :negative_take_last_program)"],
+    data = [":negative_take_last_program"],
+)
+
+dola_binary(
+    name = "unit_main_program",
+    srcs = ["unit_main.dola"],
+    testonly = True,
+)
+
+sh_test(
+    name = "unit_main_execution_test",
+    srcs = ["expect_output.sh"],
+    args = [
+        "$(location :unit_main_program)",
+        "unit main ran",
+    ],
+    data = [":unit_main_program"],
+)
+
+dola_library(
+    name = "transitive_math",
+    srcs = ["transitive_math.dola"],
+)
+
+dola_test(
+    name = "transitive_library_execution_test",
+    srcs = ["transitive_main.dola"],
+    deps = [":transitive_math"],
+)
+
+dola_binary(
+    name = "division_by_zero_program",
+    srcs = ["division_by_zero.dola"],
+    testonly = True,
+)
+
+sh_test(
+    name = "division_by_zero_test",
+    srcs = ["expect_failure.sh"],
+    args = ["$(location :division_by_zero_program)"],
+    data = [":division_by_zero_program"],
+)
+
+[
+    dola_binary(
+        name = "%s_program" % name,
+        srcs = ["%s.dola" % name],
+        testonly = True,
+    )
+    for name in [
+        "remainder_by_zero",
+        "division_overflow",
+    ]
+]
+
+[
+    sh_test(
+        name = "%s_test" % name,
+        srcs = ["expect_failure.sh"],
+        args = ["$(location :%s_program)" % name],
+        data = [":%s_program" % name],
+    )
+    for name in [
+        "remainder_by_zero",
+        "division_overflow",
+    ]
+]

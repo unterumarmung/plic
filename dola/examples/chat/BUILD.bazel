@@ -1,0 +1,26 @@
+load("//bazel:dola_rules.bzl", "dola_binary", "dola_library")
+
+package(default_visibility = ["//visibility:public"])
+
+dola_library(
+    name = "protocol",
+    srcs = ["protocol.dola"],
+)
+
+dola_binary(
+    name = "server",
+    srcs = ["server.dola"],
+    deps = [":protocol"],
+)
+
+dola_binary(
+    name = "client",
+    srcs = ["client.dola"],
+    deps = [":protocol"],
+)
+
+exports_files([
+    "client.dola",
+    "protocol.dola",
+    "server.dola",
+])

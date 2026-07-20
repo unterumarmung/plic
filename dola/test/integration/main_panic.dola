@@ -1,0 +1,9 @@
+module test.main_panic;
+
+fn fail() -> Int {
+  panic("main failed")
+}
+
+fn main() -> Int {
+  fail()
+}

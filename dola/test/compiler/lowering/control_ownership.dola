@@ -1,0 +1,22 @@
+// RUN: dola --emit-mlir %s | FileCheck %s --check-prefix=HIGH
+// RUN: dola --emit-lowered-mlir %s | FileCheck %s --check-prefix=LOW
+// HIGH: cf.cond_br
+// HIGH: callee = "list.get.unchecked"
+// HIGH: dola.value.retain
+// HIGH: dola.value.release
+// LOW-NOT: dola.
+// LOW: llvm.call @dola_rt_codegen
+// LOW: llvm.call @dola_rt_codegen_release
+module test.control_ownership;
+
+record Item { value: Int, }
+
+fn main() -> Int {
+    let values = [Item { value: 1 }, Item { value: 2 }];
+    var result = 0;
+    for item in values {
+        if item.value == 2 { break; };
+        result = result + item.value;
+    };
+    result - 1
+}

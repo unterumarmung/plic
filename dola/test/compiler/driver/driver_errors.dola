@@ -1,0 +1,19 @@
+// RUN: not dola --emit-object %s 2>&1 | FileCheck %s --check-prefix=OUTPUT-REQUIRED
+// RUN: not dola --check 2>&1 | FileCheck %s --check-prefix=MISSING-SOURCE
+// RUN: not dola --does-not-exist %s 2>&1 | FileCheck %s --check-prefix=UNKNOWN
+// RUN: not dola --check --emit-mlir %s 2>&1 | FileCheck %s --check-prefix=REPEATED
+// RUN: not dola --check %S/does_not_exist.dola 2>&1 | FileCheck %s --check-prefix=UNREADABLE
+// RUN: not dola --emit-llvm %s 2>&1 | FileCheck --strict-whitespace %s --check-prefix=ENTRY
+// RUN: not dola --emit-object -o %S %S/driver_object_main.dola 2>&1 | FileCheck %s --check-prefix=OBJECT-ERROR
+// OUTPUT-REQUIRED: --emit-object requires -o <path>
+// MISSING-SOURCE: Not enough positional command line arguments specified
+// UNKNOWN: Unknown command line argument '--does-not-exist'
+// REPEATED: exactly one compiler action may be specified
+// UNREADABLE: does_not_exist.dola:1:1: error: cannot read source file
+// OBJECT-ERROR: dola: Is a directory
+// ENTRY: driver_errors.dola:[[@LINE+3]]:1: error: executable requires exactly one `main` function
+// ENTRY-NEXT:     module negative.driver;
+// ENTRY-NEXT:     ^
+module negative.driver;
+
+fn helper() {}

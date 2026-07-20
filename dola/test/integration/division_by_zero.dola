@@ -1,0 +1,5 @@
+module test.division_by_zero;
+
+fn main() -> Int {
+    1 / 0
+}

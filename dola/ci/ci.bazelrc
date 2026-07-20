@@ -1,0 +1,10 @@
+# This directory is persisted between GitHub Actions runs by actions/cache.
+common --disk_cache=~/.cache/bazel-disk
+
+# The wildcard build is the product build. Manual formatter and linter targets
+# run in the dedicated quality job after the core cache has been saved.
+build --build_tag_filters=-manual
+
+# rules_rs builds host tools with the hermetic C++ linker. On Linux, provide
+# hermetic-llvm's libgcc_s compatibility stub instead of searching the host.
+common --@llvm//config:experimental_stub_libgcc_s=True

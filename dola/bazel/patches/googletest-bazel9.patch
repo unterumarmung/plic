@@ -1,0 +1,29 @@
+diff --git a/BUILD.bazel b/BUILD.bazel
+index 086d90d..dad25dc 100644
+--- a/BUILD.bazel
++++ b/BUILD.bazel
+@@ -27,6 +27,9 @@
+ #
+ #   Bazel Build for Google C++ Testing Framework(Google Test)
+ 
++load("@rules_cc//cc:cc_library.bzl", "cc_library")
++load("@rules_cc//cc:cc_test.bzl", "cc_test")
++
+ package(default_visibility = ["//visibility:public"])
+ 
+ licenses(["notice"])
+diff --git a/MODULE.bazel b/MODULE.bazel
+index 85bfc7a..f100fa0 100644
+--- a/MODULE.bazel
++++ b/MODULE.bazel
+@@ -40,6 +40,10 @@ module(
+ # Only direct dependencies need to be listed below.
+ # Please keep the versions in sync with the versions in the WORKSPACE file.
+ 
++bazel_dep(
++    name = "rules_cc",
++    version = "0.2.0",
++)
+ bazel_dep(
+     name = "abseil-cpp",
+     version = "20250127.1",

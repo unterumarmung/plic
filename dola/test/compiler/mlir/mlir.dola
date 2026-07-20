@@ -1,0 +1,17 @@
+// RUN: dola --emit-mlir %s | FileCheck %s --check-prefix=HIGH
+// RUN: dola --emit-lowered-mlir %s | FileCheck %s --check-prefix=LOW
+// HIGH: func.func @__dola_test_mlir_main
+// HIGH: arith.addi
+// HIGH: dola.io.println
+// HIGH: scf.if
+// LOW-NOT: dola.
+// LOW: llvm.func @__dola_test_mlir_main
+// LOW: llvm.call @dola_rt_codegen_print
+module test.mlir;
+use std.io;
+
+fn main() -> Int {
+    let answer = 40 + 2;
+    io.println("checked");
+    if answer == 42 { 0 } else { 1 }
+}

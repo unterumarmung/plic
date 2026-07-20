@@ -1,0 +1,6 @@
+// RUN: not dola --check %s 2>&1 | FileCheck --strict-whitespace %s
+module syntax.malformed_type;
+// CHECK: malformed_type.dola:[[@LINE+3]]:15: error: mismatched input ')' expecting {'Unit', 'Bool', 'Int', 'Float', 'String', 'Option', 'Result', 'List', 'Map', 'Sender', 'Receiver', 'Task', 'Listener', 'Connection', '(', IDENT}
+// CHECK-NEXT:     fn bad(value: ) {}
+// CHECK-NEXT:                   ^
+fn bad(value: ) {}

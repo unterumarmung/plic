@@ -1,0 +1,5 @@
+module test.declared_input_dependency;
+
+pub fn answer() -> Int {
+    0
+}

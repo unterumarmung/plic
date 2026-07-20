@@ -1,0 +1,11 @@
+// RUN: not dola --check %s 2>&1 | FileCheck --strict-whitespace %s
+module syntax.malformed_loop;
+
+// CHECK: {{.*}}malformed_loop.dola:[[@LINE+3]]:23: error: no viable alternative at input 'looptrue'
+// CHECK-NEXT:     fn condition() { loop true {} }
+// CHECK-NEXT:                           ^^^^
+fn condition() { loop true {} }
+// CHECK-NEXT: {{.*}}malformed_loop.dola:[[@LINE+3]]:26: error: no viable alternative at input 'loop;'
+// CHECK-NEXT:     fn missing_block() { loop; }
+// CHECK-NEXT:                              ^
+fn missing_block() { loop; }

@@ -1,0 +1,26 @@
+// RUN: dola --emit-mlir %s | FileCheck %s --check-prefix=HIGH
+// RUN: dola --emit-lowered-mlir %s | FileCheck %s --check-prefix=LOW
+// HIGH: dola.task.spawn
+// HIGH-SAME: @__dola_test_concurrency_worker
+// HIGH: !dola.task<i64>
+// HIGH: callee = "channel.send"
+// HIGH: callee = "channel.receive"
+// HIGH: callee = "task.join"
+// LOW-NOT: dola.
+// LOW: llvm.func @__dola_task_entry_
+// LOW: llvm.call @dola_rt_codegen_task_spawn
+// LOW: llvm.call @dola_rt_codegen
+module test.concurrency;
+
+fn worker(value: Int) -> Int { value + 1 }
+
+fn main() {
+  let endpoints = channel[Int]();
+  let sender = endpoints.0;
+  let receiver = endpoints.1;
+  let task = spawn worker(1);
+  let sent = sender.send(2);
+  sender.close();
+  let received = receiver.receive();
+  let result = task.join();
+}

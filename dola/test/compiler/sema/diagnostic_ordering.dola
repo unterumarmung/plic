@@ -1,0 +1,11 @@
+// RUN: not dola --check %S/diagnostic_ordering_aux.dola %s > %t 2>&1
+// RUN: FileCheck --strict-whitespace --check-prefix=AUX %S/diagnostic_ordering_aux.dola < %t
+// RUN: FileCheck --strict-whitespace --check-prefix=MAIN %s < %t
+module diagnostic.ordering;
+
+fn main() {
+// MAIN: diagnostic_ordering.dola:[[@LINE+3]]:22: error: expected `String`, found `Int`
+// MAIN-NEXT:     	let value: String = 42; // UTF-8: ☃
+// MAIN-NEXT:                          ^^
+	let value: String = 42; // UTF-8: ☃
+}

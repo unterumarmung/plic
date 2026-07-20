@@ -1,0 +1,21 @@
+// RUN: dola --emit-mlir %s | FileCheck %s --check-prefix=HIGH
+// RUN: dola --emit-lowered-mlir %s | FileCheck %s --check-prefix=LOW
+// HIGH: cf.cond_br
+// HIGH: return
+// HIGH: cf.br
+// LOW-NOT: scf.
+// LOW-NOT: cf.
+// LOW: llvm.cond_br
+module test.short_circuit_return;
+
+fn choose(stop: Bool) -> Bool {
+    true && if stop {
+        return false;
+    } else {
+        true
+    }
+}
+
+fn main() -> Int {
+    if choose(false) { 0 } else { 1 }
+}

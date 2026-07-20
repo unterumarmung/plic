@@ -1,0 +1,29 @@
+// RUN: not dola --check %s 2>&1 | FileCheck --strict-whitespace %s
+module negative.control;
+
+fn outside_loop() {
+// CHECK: control_result_diagnostics.dola:[[@LINE+3]]:5: error: `break` is only valid inside a loop
+// CHECK-NEXT:         break;
+// CHECK-NEXT:         ^^^^^
+    break;
+// CHECK-NEXT: control_result_diagnostics.dola:[[@LINE+3]]:5: error: `continue` is only valid inside a loop
+// CHECK-NEXT:         continue;
+// CHECK-NEXT:         ^^^^^^^^
+    continue;
+}
+
+fn option_try(value: Option[Int]) -> Result[Unit, String] {
+// CHECK-NEXT: control_result_diagnostics.dola:[[@LINE+3]]:10: error: postfix `?` requires a `Result` value
+// CHECK-NEXT:         value?;
+// CHECK-NEXT:              ^
+    value?;
+    Ok(())
+}
+
+fn wrong_error(value: Result[Int, Int]) -> Result[Unit, String] {
+// CHECK-NEXT: control_result_diagnostics.dola:[[@LINE+3]]:10: error: postfix `?` error type must match the function result
+// CHECK-NEXT:         value?;
+// CHECK-NEXT:              ^
+    value?;
+    Ok(())
+}

@@ -1,0 +1,33 @@
+module chat.protocol;
+
+pub record Message {
+  author_id: Int,
+  author_name: String,
+  text: String,
+  timestamp: Int,
+}
+
+pub record UserSummary {
+  id: Int,
+  name: String,
+}
+
+pub enum ClientMessage {
+  Join(String),
+  Post(String),
+  History(Int),
+  Users,
+  Direct(String, String),
+  Leave,
+}
+
+pub enum ServerMessage {
+  Joined(Int),
+  UserJoined(Int, String),
+  MessagePosted(Message),
+  HistoryResult(List[Message]),
+  Users(List[UserSummary]),
+  DirectMessage(Int, String, String),
+  UserLeft(Int),
+  Rejected(String),
+}

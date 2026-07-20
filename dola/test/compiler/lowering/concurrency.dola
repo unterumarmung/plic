@@ -1,0 +1,9 @@
+// RUN: dola --emit-lowered-mlir %s | FileCheck %s
+// CHECK: llvm.func @__dola_task_entry_
+// CHECK: llvm.call @dola_rt_codegen_tuple_get
+// CHECK: llvm.call @dola_rt_codegen_task_spawn
+// CHECK-NOT: dola.
+module test.lower_concurrency;
+
+fn work(value: String) -> String { value }
+fn main() { let task = spawn work("owned"); let result = task.join(); }

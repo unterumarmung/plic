@@ -1,0 +1,18 @@
+module examples.collections;
+
+use std.io;
+
+fn main() -> Int {
+    let numbers = [1, 2, 3].push(4);
+    var total = 0;
+    for number in numbers {
+        total = total + number;
+    };
+    let totals = Map[String, Int]().insert("total", total);
+    if totals.contains("total") && total == 10 {
+        io.println("collections work");
+        0
+    } else {
+        1
+    }
+}

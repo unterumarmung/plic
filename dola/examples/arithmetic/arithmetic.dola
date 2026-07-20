@@ -1,0 +1,18 @@
+module examples.arithmetic;
+use std.io;
+
+fn twice(value: Int) -> Int {
+    value * 2
+}
+
+fn main() -> Int {
+    var answer = twice(20);
+    answer = answer + 2;
+    if answer == 42 {
+        io.println("arithmetic works");
+        0
+    } else {
+        io.println("arithmetic failed");
+        1
+    }
+}

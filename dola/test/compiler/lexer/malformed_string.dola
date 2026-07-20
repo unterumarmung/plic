@@ -1,0 +1,8 @@
+// RUN: not dola --check %s 2>&1 | FileCheck --strict-whitespace %s
+module lexer.malformed;
+fn main() {
+// CHECK: malformed_string.dola:[[@LINE+3]]:5: error: token recognition error at: '"unterminated\n'
+// CHECK-NEXT:         "unterminated
+// CHECK-NEXT:         ^
+    "unterminated
+}

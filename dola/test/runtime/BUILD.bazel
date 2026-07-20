@@ -1,0 +1,72 @@
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+load("@rules_rust//rust:defs.bzl", "rust_test")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+
+filegroup(
+    name = "format_sources",
+    srcs = glob(["*.c", "*.cpp", "*.h"], allow_empty = True),
+    visibility = ["//visibility:public"],
+)
+
+rust_test(
+    name = "runtime_test",
+    srcs = ["runtime_test.rs"],
+    edition = "2024",
+    deps = ["//runtime:runtime_lib"],
+    visibility = ["//:__pkg__"],
+)
+
+cc_test(
+    name = "abi_c_test",
+    srcs = ["abi_smoke.c"],
+    deps = ["//runtime:runtime_header"],
+)
+
+cc_binary(
+    name = "runtime_failure_probe",
+    srcs = ["runtime_failure_probe.cpp"],
+    testonly = True,
+    visibility = ["//:__pkg__"],
+    deps = [
+        "//runtime",
+        "//runtime:runtime_header",
+    ],
+)
+
+[
+    sh_test(
+        name = "runtime_%s_test" % name.replace("-", "_"),
+        srcs = ["expect_runtime_failure.sh"],
+        args = [
+            "$(location :runtime_failure_probe)",
+            name,
+            message,
+        ],
+        data = [":runtime_failure_probe"],
+    )
+    for name, message in [
+        ("unknown-operation", "unknown codegen operation"),
+        ("null-output", "codegen output must not be null"),
+        ("missing-input", "missing codegen input"),
+        ("malformed-result", "Result main returned a primitive value"),
+    ]
+]
+
+cc_test(
+    name = "abi_cpp_test",
+    srcs = ["abi_smoke.cpp"],
+    deps = ["//runtime:runtime_header"],
+    visibility = ["//:__pkg__"],
+)
+
+cc_test(
+    name = "runtime_abi_test",
+    srcs = ["runtime_abi_test.cpp"],
+    deps = [
+        "//runtime",
+        "//runtime:runtime_header",
+        "@googletest//:gtest_main",
+    ],
+    visibility = ["//:__pkg__"],
+)

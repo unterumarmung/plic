@@ -1,0 +1,8 @@
+// RUN: not dola --check %s 2>&1 | FileCheck --strict-whitespace %s
+module syntax.invalid_postfix;
+fn bad() {
+// CHECK: invalid_postfix.dola:[[@LINE+3]]:7: error: no viable alternative at input '1.?'
+// CHECK-NEXT:         1.?;
+// CHECK-NEXT:           ^
+    1.?;
+}

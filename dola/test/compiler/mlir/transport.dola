@@ -1,0 +1,13 @@
+// RUN: dola --emit-mlir %s | FileCheck %s --check-prefix=HIGH
+// RUN: dola --emit-lowered-mlir %s | FileCheck %s --check-prefix=LOW
+// HIGH: "dola.runtime"
+// HIGH-SAME: callee = "transport.listen"
+// HIGH-SAME: !dola.listener<!dola.string, !dola.string>
+// LOW-NOT: dola.
+// LOW: llvm.call @dola_rt_codegen
+module test.transport;
+use std.transport;
+
+fn main() {
+  let listener = transport.listen[String, String]("127.0.0.1:0");
+}

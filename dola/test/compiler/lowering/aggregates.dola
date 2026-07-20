@@ -1,0 +1,22 @@
+// RUN: dola --emit-mlir %s | FileCheck %s --check-prefix=HIGH
+// RUN: dola --emit-lowered-mlir %s | FileCheck %s --check-prefix=LOW
+// HIGH: !dola.record<"test.aggregates.Item">
+// HIGH: dola.slot.alloc
+// HIGH: callee = "record.create"
+// HIGH: dola.value.release
+// LOW-NOT: dola.
+// LOW: llvm.call @dola_rt_codegen
+// LOW: llvm.call @dola_rt_codegen_retain
+// LOW: llvm.call @dola_rt_codegen_release
+module test.aggregates;
+
+record Item {
+    value: Int,
+}
+
+fn main() -> Int {
+    let item = Item { value: 1 };
+    var values = [item];
+    values = values.push(Item { value: 2 });
+    values.length() - 2
+}

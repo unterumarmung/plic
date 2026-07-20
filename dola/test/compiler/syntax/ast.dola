@@ -1,0 +1,24 @@
+// RUN: dola --dump-ast %s | FileCheck --match-full-lines --strict-whitespace %s
+// CHECK:(module test.ast
+// CHECK-NEXT:  (fn main -> Int
+// CHECK-NEXT:    (block
+// CHECK-NEXT:      (tail
+// CHECK-NEXT:        (binary -
+// CHECK-NEXT:          (binary +
+// CHECK-NEXT:            1
+// CHECK-NEXT:            (binary *
+// CHECK-NEXT:              2
+// CHECK-NEXT:              3
+// CHECK-NEXT:            )
+// CHECK-NEXT:          )
+// CHECK-NEXT:          4
+// CHECK-NEXT:        )
+// CHECK-NEXT:      )
+// CHECK-NEXT:    )
+// CHECK-NEXT:  )
+// CHECK-NEXT:)
+module test.ast;
+
+fn main() -> Int {
+    1 + 2 * 3 - 4
+}

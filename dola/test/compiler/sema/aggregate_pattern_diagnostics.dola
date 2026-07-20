@@ -1,0 +1,115 @@
+// RUN: not dola --check %s 2>&1 | FileCheck --strict-whitespace %s
+module negative.aggregates;
+
+record Pair { left: Int, right: Int, }
+enum Choice { Empty, Value(Int), Pair(Int, Int), }
+
+fn records() {
+// CHECK: aggregate_pattern_diagnostics.dola:[[@LINE+3]]:5: error: missing record field `right`
+// CHECK-NEXT:         Pair { left: 1 };
+// CHECK-NEXT:         ^^^^
+    Pair { left: 1 };
+// CHECK-NEXT: aggregate_pattern_diagnostics.dola:[[@LINE+3]]:21: error: duplicate record field `left`
+// CHECK-NEXT:         Pair { left: 1, left: 2, right: 3 };
+// CHECK-NEXT:                         ^^^^
+    Pair { left: 1, left: 2, right: 3 };
+// CHECK-NEXT: aggregate_pattern_diagnostics.dola:[[@LINE+3]]:31: error: unknown record field `missing`
+// CHECK-NEXT:         Pair { left: 1, right: 2, missing: 3 };
+// CHECK-NEXT:                                   ^^^^^^^
+    Pair { left: 1, right: 2, missing: 3 };
+// CHECK-NEXT: aggregate_pattern_diagnostics.dola:[[@LINE+3]]:5: error: record construction requires a record type
+// CHECK-NEXT:         Choice { left: 1 };
+// CHECK-NEXT:         ^^^^^^
+    Choice { left: 1 };
+// CHECK-NEXT: aggregate_pattern_diagnostics.dola:[[@LINE+3]]:5: error: record update requires a record value
+// CHECK-NEXT:         1 with { value: 2 };
+// CHECK-NEXT:         ^
+    1 with { value: 2 };
+    let pair = Pair { left: 1, right: 2 };
+// CHECK-NEXT: aggregate_pattern_diagnostics.dola:[[@LINE+9]]:24: error: expected `Int`, found `Bool`
+// CHECK-NEXT:         pair with { right: false, right: 3, missing: 4 };
+// CHECK-NEXT:                            ^^^^^
+// CHECK-NEXT: aggregate_pattern_diagnostics.dola:[[@LINE+6]]:31: error: duplicate record field `right`
+// CHECK-NEXT:         pair with { right: false, right: 3, missing: 4 };
+// CHECK-NEXT:                                   ^^^^^
+// CHECK-NEXT: aggregate_pattern_diagnostics.dola:[[@LINE+3]]:41: error: unknown record field `missing`
+// CHECK-NEXT:         pair with { right: false, right: 3, missing: 4 };
+// CHECK-NEXT:                                             ^^^^^^^
+    pair with { right: false, right: 3, missing: 4 };
+}
+
+fn variants() {
+// CHECK-NEXT: aggregate_pattern_diagnostics.dola:[[@LINE+3]]:17: error: enum variant `Value` expects 1 arguments
+// CHECK-NEXT:         Choice.Value();
+// CHECK-NEXT:                     ^
+    Choice.Value();
+// CHECK-NEXT: aggregate_pattern_diagnostics.dola:[[@LINE+3]]:18: error: expected `Int`, found `Bool`
+// CHECK-NEXT:         Choice.Value(false);
+// CHECK-NEXT:                      ^^^^^
+    Choice.Value(false);
+// CHECK-NEXT: aggregate_pattern_diagnostics.dola:[[@LINE+3]]:5: error: unresolved name `Choice`
+// CHECK-NEXT:         Choice.Missing;
+// CHECK-NEXT:         ^^^^^^
+    Choice.Missing;
+}
+
+fn tuple_bindings() {
+// CHECK-NEXT: aggregate_pattern_diagnostics.dola:[[@LINE+3]]:5: error: tuple destructuring requires `let`
+// CHECK-NEXT:         var (left, right) = (1, 2);
+// CHECK-NEXT:         ^^^
+    var (left, right) = (1, 2);
+// CHECK-NEXT: aggregate_pattern_diagnostics.dola:[[@LINE+3]]:5: error: tuple binding requires a tuple value
+// CHECK-NEXT:         let (left, right) = 1;
+// CHECK-NEXT:         ^^^
+    let (left, right) = 1;
+// CHECK-NEXT: aggregate_pattern_diagnostics.dola:[[@LINE+3]]:5: error: tuple binding arity does not match value
+// CHECK-NEXT:         let (left, right, extra) = (1, 2);
+// CHECK-NEXT:         ^^^
+    let (left, right, extra) = (1, 2);
+}
+
+fn invalid_patterns(value: Option[Int], result: Result[Int, String], choice: Choice) -> Int {
+// CHECK-NEXT: aggregate_pattern_diagnostics.dola:[[@LINE+6]]:19: error: invalid `Option` pattern
+// CHECK-NEXT:         match value { Ok(item) => item, _ => 0, };
+// CHECK-NEXT:                       ^^
+// CHECK-NEXT: aggregate_pattern_diagnostics.dola:[[@LINE+3]]:31: error: unresolved name `item`
+// CHECK-NEXT:         match value { Ok(item) => item, _ => 0, };
+// CHECK-NEXT:                                   ^^^^
+    match value { Ok(item) => item, _ => 0, };
+// CHECK-NEXT: aggregate_pattern_diagnostics.dola:[[@LINE+3]]:20: error: invalid `Result` pattern
+// CHECK-NEXT:         match result { None => 0, _ => 1, };
+// CHECK-NEXT:                        ^^^^
+    match result { None => 0, _ => 1, };
+// CHECK-NEXT: aggregate_pattern_diagnostics.dola:[[@LINE+3]]:20: error: unknown enum variant `Missing`
+// CHECK-NEXT:         match choice { Choice.Missing => 0, _ => 1, };
+// CHECK-NEXT:                        ^^^^^^
+    match choice { Choice.Missing => 0, _ => 1, };
+// CHECK-NEXT: aggregate_pattern_diagnostics.dola:[[@LINE+3]]:38: error: duplicate pattern binding `item`
+// CHECK-NEXT:         match choice { Choice.Pair(item, item) => item, _ => 0, };
+// CHECK-NEXT:                                          ^^^^
+    match choice { Choice.Pair(item, item) => item, _ => 0, };
+// CHECK-NEXT: aggregate_pattern_diagnostics.dola:[[@LINE+3]]:20: error: pattern payload arity does not match variant
+// CHECK-NEXT:         match choice { Choice.Value => 0, _ => 1, };
+// CHECK-NEXT:                        ^^^^^^
+    match choice { Choice.Value => 0, _ => 1, };
+// CHECK-NEXT: aggregate_pattern_diagnostics.dola:[[@LINE+3]]:20: error: expected `Choice`, found `Int`
+// CHECK-NEXT:         match choice { 1 => 0, _ => 1, };
+// CHECK-NEXT:                        ^
+    match choice { 1 => 0, _ => 1, };
+// CHECK-NEXT: aggregate_pattern_diagnostics.dola:[[@LINE+3]]:29: error: unreachable match arm
+// CHECK-NEXT:         match true { true => 0, true => 1, false => 2, };
+// CHECK-NEXT:                                 ^^^^
+    match true { true => 0, true => 1, false => 2, };
+// CHECK-NEXT: aggregate_pattern_diagnostics.dola:[[@LINE+3]]:5: error: non-exhaustive match, missing `Value(*)`, `Pair(*, *)`
+// CHECK-NEXT:         match choice { Choice.Empty => 0, };
+// CHECK-NEXT:         ^^^^^
+    match choice { Choice.Empty => 0, };
+// CHECK-NEXT: aggregate_pattern_diagnostics.dola:[[@LINE+3]]:5: error: non-exhaustive match, missing `*`
+// CHECK-NEXT:         match 1 { 1 => 0, };
+// CHECK-NEXT:         ^^^^^
+    match 1 { 1 => 0, };
+// CHECK-NEXT: aggregate_pattern_diagnostics.dola:[[@LINE+3]]:5: error: match requires an enum-like or literal value
+// CHECK-NEXT:         match () { _ => 0, }
+// CHECK-NEXT:         ^^^^^
+    match () { _ => 0, }
+}

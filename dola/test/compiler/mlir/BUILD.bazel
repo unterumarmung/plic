@@ -1,0 +1,58 @@
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+load("//bazel:lit.bzl", "lit_test_suite")
+
+filegroup(
+    name = "format_sources",
+    srcs = glob(["*.cpp", "*.h"], allow_empty = True),
+    visibility = ["//visibility:public"],
+)
+
+cc_test(
+    name = "mlir_api_test",
+    srcs = ["mlir_api_test.cpp"],
+    deps = [
+        "//compiler/lowering",
+        "//compiler/mlir:dialect",
+        "//compiler/mlir:mlir_gen",
+        "//compiler/sema",
+        "//compiler/support",
+        "//compiler/syntax",
+        "@googletest//:gtest_main",
+        "@llvm-project//llvm:Core",
+        "@llvm-project//mlir:ArithDialect",
+        "@llvm-project//mlir:ControlFlowDialect",
+        "@llvm-project//mlir:FuncDialect",
+        "@llvm-project//mlir:IR",
+        "@llvm-project//mlir:LLVMDialect",
+        "@llvm-project//mlir:MemRefDialect",
+        "@llvm-project//mlir:SCFDialect",
+    ],
+    visibility = ["//:__pkg__"],
+)
+
+lit_test_suite(
+    name = "lit_tests",
+    srcs = [
+        "dialect.mlir",
+        "dialect_invalid.mlir",
+        "dialect_invalid_operations.mlir",
+        "dialect_invalid_release.mlir",
+        "dialect_invalid_retain.mlir",
+        "dialect_invalid_retain_primitive.mlir",
+        "dialect_invalid_runtime.mlir",
+        "dialect_invalid_slot_alloc.mlir",
+        "dialect_invalid_slot_load.mlir",
+        "dialect_invalid_slot_store.mlir",
+        "dialect_invalid_text_runtime.mlir",
+        "dialect_invalid_types.mlir",
+        "mlir.dola",
+        "concurrency.dola",
+        "transport.dola",
+    ],
+    cfg = "//test:lit.cfg.py",
+    tools = [
+        "//tools/dola",
+        "//tools/dola-opt",
+        "@llvm-project//llvm:FileCheck",
+    ],
+)

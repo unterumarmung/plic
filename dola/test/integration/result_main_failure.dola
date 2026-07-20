@@ -1,0 +1,5 @@
+module test.result_main_failure;
+
+fn main() -> Result[Unit, String] {
+    Err("expected result failure")
+}

@@ -1,0 +1,15 @@
+module test.aggregates;
+
+record Point { x: Int, y: Int, }
+enum Choice { Empty, Value(Int), }
+
+fn main() -> Int {
+    let point = Point { x: 2, y: 3 };
+    let moved = point with { x: 4 };
+    let pair = (moved.x, moved.y);
+    match Choice.Value(pair.0 + pair.1) {
+        Choice.Empty => 1,
+        Choice.Value(7) => 0,
+        Choice.Value(_) => 2,
+    }
+}

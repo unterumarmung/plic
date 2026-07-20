@@ -1,0 +1,63 @@
+// RUN: not dola --check %s 2>&1 | FileCheck --strict-whitespace %s
+module negative.types;
+
+// CHECK: type_operator_diagnostics.dola:[[@LINE+3]]:18: error: operator `!` requires `Bool`
+// CHECK-NEXT:     fn unary_not() { !1; }
+// CHECK-NEXT:                      ^
+fn unary_not() { !1; }
+// CHECK-NEXT: type_operator_diagnostics.dola:[[@LINE+3]]:20: error: unary `-` requires a numeric operand
+// CHECK-NEXT:     fn unary_minus() { -true; }
+// CHECK-NEXT:                        ^
+fn unary_minus() { -true; }
+// CHECK-NEXT: type_operator_diagnostics.dola:[[@LINE+3]]:28: error: operator operands must have matching types
+// CHECK-NEXT:     fn mismatched_operands() { 1 + 1.0; }
+// CHECK-NEXT:                                ^
+fn mismatched_operands() { 1 + 1.0; }
+// CHECK-NEXT: type_operator_diagnostics.dola:[[@LINE+3]]:24: error: operator `&&` requires `Bool` operands
+// CHECK-NEXT:     fn invalid_logical() { 1 && 2; }
+// CHECK-NEXT:                            ^
+fn invalid_logical() { 1 && 2; }
+// CHECK-NEXT: type_operator_diagnostics.dola:[[@LINE+3]]:27: error: comparison requires numeric operands
+// CHECK-NEXT:     fn invalid_comparison() { true < false; }
+// CHECK-NEXT:                               ^^^^
+fn invalid_comparison() { true < false; }
+// CHECK-NEXT: type_operator_diagnostics.dola:[[@LINE+3]]:27: error: arithmetic requires numeric operands
+// CHECK-NEXT:     fn invalid_arithmetic() { true + false; }
+// CHECK-NEXT:                               ^^^^
+fn invalid_arithmetic() { true + false; }
+// CHECK-NEXT: type_operator_diagnostics.dola:[[@LINE+3]]:25: error: equality is not implemented for `<range>`
+// CHECK-NEXT:     fn invalid_equality() { (1 .. 2) == (3 .. 4); }
+// CHECK-NEXT:                             ^
+fn invalid_equality() { (1 .. 2) == (3 .. 4); }
+// CHECK-NEXT: type_operator_diagnostics.dola:[[@LINE+3]]:29: error: `if` condition must be `Bool`
+// CHECK-NEXT:     fn invalid_condition() { if 1 {}; }
+// CHECK-NEXT:                                 ^
+fn invalid_condition() { if 1 {}; }
+// CHECK-NEXT: type_operator_diagnostics.dola:[[@LINE+3]]:25: error: `if` without `else` must produce `Unit`
+// CHECK-NEXT:     fn invalid_value_if() { if true { 1 }; }
+// CHECK-NEXT:                             ^^
+fn invalid_value_if() { if true { 1 }; }
+// CHECK-NEXT: type_operator_diagnostics.dola:[[@LINE+3]]:28: error: branches must produce the same type, found `Int` and `Bool`
+// CHECK-NEXT:     fn mismatched_branches() { if true { 1 } else { false }; }
+// CHECK-NEXT:                                ^^
+fn mismatched_branches() { if true { 1 } else { false }; }
+// CHECK-NEXT: type_operator_diagnostics.dola:[[@LINE+3]]:22: error: range bounds must be `Int`
+// CHECK-NEXT:     fn invalid_range() { true .. false; }
+// CHECK-NEXT:                          ^^^^
+fn invalid_range() { true .. false; }
+// CHECK-NEXT: type_operator_diagnostics.dola:[[@LINE+3]]:28: error: `while` condition must be `Bool`
+// CHECK-NEXT:     fn invalid_while() { while 1 {}; }
+// CHECK-NEXT:                                ^
+fn invalid_while() { while 1 {}; }
+// CHECK-NEXT: type_operator_diagnostics.dola:[[@LINE+3]]:33: error: `for` requires a list or integer range
+// CHECK-NEXT:     fn invalid_for() { for value in 1 {}; }
+// CHECK-NEXT:                                     ^
+fn invalid_for() { for value in 1 {}; }
+// CHECK-NEXT: type_operator_diagnostics.dola:[[@LINE+3]]:30: error: expected `Int`, found `Bool`
+// CHECK-NEXT:     fn invalid_return() -> Int { return false; }
+// CHECK-NEXT:                                  ^^^^^^
+fn invalid_return() -> Int { return false; }
+// CHECK-NEXT: type_operator_diagnostics.dola:[[@LINE+3]]:29: error: expected function body to produce `String`, found `Int`
+// CHECK-NEXT:     fn invalid_body() -> String { 1 }
+// CHECK-NEXT:                                 ^
+fn invalid_body() -> String { 1 }

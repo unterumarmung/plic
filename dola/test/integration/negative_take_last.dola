@@ -1,0 +1,6 @@
+module test.negative_take_last;
+
+fn main() -> Int {
+    let values = [1, 2, 3];
+    values.take_last(-1).length()
+}

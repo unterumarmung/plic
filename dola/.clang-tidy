@@ -1,0 +1,46 @@
+# LLVM/MLIR's inline builders produce ArrayBound and StackAddressEscape false
+# positives in their operand and type-registration templates; generated modules
+# are verified independently after every compiler stage. GoogleTest registers
+# tests statically by design, so its registration macro is excluded as well.
+# MLIR values are intentionally lightweight typed handles whose conversions look
+# like slicing or braced-return opportunities to generic checks. Compiler
+# components also hold explicit non-owning references with enclosing-call
+# lifetimes. The unchecked-container check cannot express parallel-vector loop
+# invariants and does not understand several LLVM containers; semantic identity
+# indexing is instead routed through the checked strong-ID helper.
+Checks: >
+  -*,
+  clang-analyzer-*,
+  -clang-analyzer-core.StackAddressEscape,
+  -clang-analyzer-security.ArrayBound,
+  bugprone-*,
+  -bugprone-crtp-constructor-accessibility,
+  -bugprone-derived-method-shadowing-base-method,
+  -bugprone-throwing-static-initialization,
+  performance-*,
+  -performance-enum-size,
+  portability-*,
+  modernize-*,
+  -modernize-use-trailing-return-type,
+  -modernize-use-std-format,
+  -modernize-use-std-print,
+  -modernize-return-braced-init-list,
+  cppcoreguidelines-*,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-macro-usage,
+  -cppcoreguidelines-non-private-member-variables-in-classes,
+  -cppcoreguidelines-owning-memory,
+  -cppcoreguidelines-avoid-const-or-ref-data-members,
+  -cppcoreguidelines-pro-bounds-avoid-unchecked-container-access,
+  -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+  -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+  -cppcoreguidelines-slicing,
+  readability-avoid-const-params-in-decls,
+  readability-container-size-empty,
+  readability-redundant-*,
+  -readability-redundant-access-specifiers,
+  -readability-redundant-inline-specifier
+WarningsAsErrors: '*'
+HeaderFilterRegex: '(^|/)dola/(compiler|runtime|tools|test)/.*\.(h|hpp)$'
+FormatStyle: file
+ExtraArgs: ['-std=c++23']
