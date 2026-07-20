@@ -1,5 +1,5 @@
 const TRANSPORT_MAGIC: &[u8; 8] = b"DOLA\0\0\0\x03";
-const MAX_FRAME_LENGTH: usize = 64 * 1024;
+const MAX_FRAME_LENGTH: usize = 2 * 1024 * 1024;
 
 struct ListenerCore {
     listener: Mutex<Option<TcpListener>>,

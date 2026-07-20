@@ -75,8 +75,8 @@ fn send_direct(
     None => (),
     Some(sender) => if target_name == "" || text == "" {
       reject_client(sender, "malformed direct message");
-    } else if text.length() > 4096 {
-      reject_client(sender, "message exceeds 4096 bytes");
+    } else if text.length() > 1048576 {
+      reject_client(sender, "message exceeds 1 MiB");
     } else {
       var target_id: Option[Int] = None;
       for entry in clients.entries() {
@@ -132,8 +132,8 @@ fn run_room(commands: Receiver[RoomCommand]) -> Unit {
         },
         RoomCommand.Post(id, text) => match clients.get(id) {
           None => (),
-          Some(client) => if text.length() > 4096 {
-            reject_client(client, "message exceeds 4096 bytes");
+          Some(client) => if text.length() > 1048576 {
+            reject_client(client, "message exceeds 1 MiB");
           } else {
             let message = protocol.Message {
               author_id: id,

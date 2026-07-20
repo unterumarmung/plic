@@ -184,7 +184,7 @@ fn transport_rejects_malformed_message_pack_frames() {
 fn transport_rejects_oversized_frames_before_allocating_payload() {
     let _lock = runtime_test_lock();
     let mut response = handshake(22, 11);
-    response.extend_from_slice(&(64_u32 * 1024 + 1).to_be_bytes());
+    response.extend_from_slice(&(2_u32 * 1024 * 1024 + 1).to_be_bytes());
     let (address, server) = raw_transport_server(response);
     let mut connection = MaybeUninit::uninit();
     assert_eq!(

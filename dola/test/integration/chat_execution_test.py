@@ -159,11 +159,22 @@ class ChatExecutionTest(unittest.TestCase):
         self.assertEqual(sum(line.startswith("JOINED ") for line in outcomes), 1)
         self.assertEqual(outcomes.count("REJECTED name is already in use"), 1)
 
-        winner = first if outcomes[0].startswith("JOINED ") else second
-        winner.send("x" * 4097)
-        winner.expect("REJECTED message exceeds 4096 bytes")
-        winner.send("/msg Contested " + "x" * 4097)
-        winner.expect("REJECTED message exceeds 4096 bytes")
+        winner_index = 0 if outcomes[0].startswith("JOINED ") else 1
+        winner = first if winner_index == 0 else second
+        winner_id = int(outcomes[winner_index].split()[1])
+        maximum_message = "x" * (1024 * 1024)
+        winner.send(maximum_message)
+        winner.expect(f"MESSAGE Contested: {maximum_message}", timeout=30)
+        winner.send("/msg Contested " + maximum_message)
+        winner.expect(
+            f"DIRECT {winner_id} Contested: {maximum_message}", timeout=30
+        )
+
+        oversized_message = maximum_message + "x"
+        winner.send(oversized_message)
+        winner.expect("REJECTED message exceeds 1 MiB", timeout=30)
+        winner.send("/msg Contested " + oversized_message)
+        winner.expect("REJECTED message exceeds 1 MiB", timeout=30)
 
     def test_history_is_bounded_and_excludes_direct_messages(self) -> None:
         client = self.connect("Historian")
