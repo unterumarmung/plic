@@ -1,0 +1,14 @@
+load("@rules_java//java:java_binary.bzl", "java_binary")
+load("@rules_java//java:java_import.bzl", "java_import")
+
+java_import(
+    name = "jar",
+    jars = ["@antlr4_tool//file"],
+)
+
+java_binary(
+    name = "antlr",
+    main_class = "org.antlr.v4.Tool",
+    runtime_deps = [":jar"],
+    visibility = ["//visibility:public"],
+)

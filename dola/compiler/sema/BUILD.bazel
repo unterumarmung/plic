@@ -1,0 +1,28 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+filegroup(
+    name = "format_sources",
+    srcs = glob(["*.cpp", "*.h"]),
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "sema",
+    srcs = [
+        "module_graph.cpp",
+        "sema.cpp",
+        "type_context.cpp",
+        "type_context.h",
+    ],
+    hdrs = [
+        "module_graph.h",
+        "sema.h",
+    ],
+    include_prefix = "dola",
+    strip_include_prefix = ".",
+    deps = [
+        "//compiler/support",
+        "//compiler/syntax",
+    ],
+    visibility = ["//visibility:public"],
+)

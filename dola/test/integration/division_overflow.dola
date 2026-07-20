@@ -1,0 +1,5 @@
+module test.division_overflow;
+
+fn main() -> Int {
+    (-9223372036854775807 - 1) / -1
+}

@@ -1,0 +1,6 @@
+module test.integration;
+use test.math;
+
+fn main() -> Int {
+    if math.answer() == 42 { 0 } else { 1 }
+}

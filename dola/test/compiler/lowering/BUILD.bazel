@@ -1,0 +1,21 @@
+load("//bazel:lit.bzl", "lit_test_suite")
+
+lit_test_suite(
+    name = "lit_tests",
+    srcs = [
+        "division.dola",
+        "aggregates.dola",
+        "control_ownership.dola",
+        "return.dola",
+        "short_circuit_return.dola",
+        "concurrency.dola",
+        "transport.dola",
+        "text_panic.mlir",
+    ],
+    cfg = "//test:lit.cfg.py",
+    tools = [
+        "//tools/dola",
+        "//tools/dola-opt",
+        "@llvm-project//llvm:FileCheck",
+    ],
+)

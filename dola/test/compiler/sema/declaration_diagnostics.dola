@@ -1,0 +1,48 @@
+// RUN: not dola --check %s 2>&1 | FileCheck --strict-whitespace %s
+module negative.declarations;
+
+// CHECK: declaration_diagnostics.dola:[[@LINE+3]]:37: error: duplicate record field `value`
+// CHECK-NEXT:     record DuplicateField { value: Int, value: Bool, }
+// CHECK-NEXT:                                         ^^^^^
+record DuplicateField { value: Int, value: Bool, }
+// CHECK-NEXT: declaration_diagnostics.dola:[[@LINE+3]]:32: error: duplicate enum variant `Value`
+// CHECK-NEXT:     enum DuplicateVariant { Value, Value, }
+// CHECK-NEXT:                                    ^^^^^
+enum DuplicateVariant { Value, Value, }
+// CHECK-NEXT: declaration_diagnostics.dola:[[@LINE+3]]:1: error: duplicate declaration `SharedName`
+// CHECK-NEXT:     record SharedName { value: Int, }
+// CHECK-NEXT:     ^^^^^^
+record SharedName { value: Int, }
+fn SharedName() {}
+
+// CHECK-NEXT: declaration_diagnostics.dola:[[@LINE+3]]:36: error: duplicate parameter `value`
+// CHECK-NEXT:     fn duplicate_parameter(value: Int, value: Bool) {}
+// CHECK-NEXT:                                        ^^^^^
+fn duplicate_parameter(value: Int, value: Bool) {}
+
+fn duplicate_local() {
+    let value = 1;
+// CHECK-NEXT: declaration_diagnostics.dola:[[@LINE+3]]:5: error: duplicate local binding `value`
+// CHECK-NEXT:         let value = 2;
+// CHECK-NEXT:         ^^^
+    let value = 2;
+}
+
+fn unresolved_name() {
+// CHECK-NEXT: declaration_diagnostics.dola:[[@LINE+3]]:5: error: unresolved name `missing`
+// CHECK-NEXT:         missing;
+// CHECK-NEXT:         ^^^^^^^
+    missing;
+}
+
+fn unresolved_assignment() {
+// CHECK-NEXT: declaration_diagnostics.dola:[[@LINE+3]]:5: error: unresolved name `missing`
+// CHECK-NEXT:         missing = 1;
+// CHECK-NEXT:         ^^^^^^^
+    missing = 1;
+}
+
+// CHECK-NEXT: declaration_diagnostics.dola:[[@LINE+3]]:24: error: unknown type `Missing`
+// CHECK-NEXT:     fn unknown_type(value: Missing) {}
+// CHECK-NEXT:                            ^^^^^^^
+fn unknown_type(value: Missing) {}

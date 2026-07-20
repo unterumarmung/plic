@@ -1,0 +1,34 @@
+// RUN: not dola --check %s 2>&1 | FileCheck --strict-whitespace %s
+module test.capability_diagnostics;
+use std.transport;
+
+fn worker(value: Int) -> Int { value }
+
+fn invalid_spawn() {
+// CHECK: concurrency_transport_diagnostics.dola:[[@LINE+3]]:14: error: `spawn` requires a direct function call
+// CHECK-NEXT:       let task = spawn { worker(1); };
+// CHECK-NEXT:                  ^^^^^
+  let task = spawn { worker(1); };
+}
+
+fn invalid_channel_type_arguments() {
+// CHECK: concurrency_transport_diagnostics.dola:[[@LINE+3]]:26: error: `channel` expects 1 type argument
+// CHECK-NEXT:       let endpoints = channel[Int, String]();
+// CHECK-NEXT:                              ^
+  let endpoints = channel[Int, String]();
+}
+
+fn invalid_send_argument() {
+  let endpoints = channel[Int]();
+// CHECK: concurrency_transport_diagnostics.dola:[[@LINE+3]]:31: error: expected `Int`, found `String`
+// CHECK-NEXT:       let sent = endpoints.0.send("wrong");
+// CHECK-NEXT:                                  ^^^^^^^
+  let sent = endpoints.0.send("wrong");
+}
+
+fn invalid_transport_resource() {
+// CHECK: concurrency_transport_diagnostics.dola:[[@LINE+3]]:35: error: transport message type is not serializable because `Sender[Int]` is a runtime resource
+// CHECK-NEXT:       let listener = transport.listen[Sender[Int], Int]("127.0.0.1:0");
+// CHECK-NEXT:                                       ^^^^^^
+  let listener = transport.listen[Sender[Int], Int]("127.0.0.1:0");
+}

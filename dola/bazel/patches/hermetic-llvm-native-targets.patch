@@ -1,0 +1,19 @@
+diff --git a/MODULE.bazel b/MODULE.bazel
+index 1111111..2222222 100644
+--- a/MODULE.bazel
++++ b/MODULE.bazel
+@@ -96,14 +96,7 @@ use_repo(llvm_source, "compiler-rt", "libcxx", "libcxxabi", "libunwind", "llv
+ llvm = use_extension("//extensions:llvm.bzl", "llvm")
+ llvm.configure(
+     targets = [
+         "AArch64",
+-        "AMDGPU",
+-        "ARM",
+-        "BPF",
+-        "NVPTX",
+-        "RISCV",
+-        "SystemZ",
+-        "WebAssembly",
+         "X86",
+     ],
+ )

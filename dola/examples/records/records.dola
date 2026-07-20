@@ -1,0 +1,25 @@
+module examples.records;
+
+use std.io;
+
+record User {
+    name: String,
+    active: Bool,
+}
+
+enum Greeting {
+    Quiet,
+    Hello(String),
+}
+
+fn main() -> Int {
+    let user = User { name: "Dola", active: true };
+    let greeting = if user.active { Greeting.Hello(user.name) } else { Greeting.Quiet };
+    match greeting {
+        Greeting.Quiet => 1,
+        Greeting.Hello(name) => {
+            io.println(name);
+            0
+        },
+    }
+}

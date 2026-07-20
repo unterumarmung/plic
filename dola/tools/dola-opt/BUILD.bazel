@@ -1,0 +1,26 @@
+load("@rules_cc//cc:cc_binary.bzl", "cc_binary")
+
+filegroup(
+    name = "format_sources",
+    srcs = ["main.cpp"],
+    visibility = ["//visibility:public"],
+)
+
+cc_binary(
+    name = "dola-opt",
+    srcs = ["main.cpp"],
+    deps = [
+        "//compiler/lowering",
+        "//compiler/mlir:dialect",
+        "@llvm-project//llvm:Support",
+        "@llvm-project//mlir:ArithDialect",
+        "@llvm-project//mlir:ControlFlowDialect",
+        "@llvm-project//mlir:FuncDialect",
+        "@llvm-project//mlir:IR",
+        "@llvm-project//mlir:LLVMDialect",
+        "@llvm-project//mlir:MemRefDialect",
+        "@llvm-project//mlir:MlirOptLib",
+        "@llvm-project//mlir:SCFDialect",
+    ],
+    visibility = ["//visibility:public"],
+)

@@ -1,0 +1,20 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+filegroup(
+    name = "format_sources",
+    srcs = glob(["*.cpp", "*.h"]),
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "support",
+    srcs = ["diagnostic.cpp"],
+    hdrs = [
+        "diagnostic.h",
+        "overloaded.h",
+        "strong_id.h",
+    ],
+    include_prefix = "dola",
+    strip_include_prefix = ".",
+    visibility = ["//visibility:public"],
+)

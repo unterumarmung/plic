@@ -1,0 +1,33 @@
+load("//bazel:lit.bzl", "lit_test_suite")
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+
+filegroup(
+    name = "format_sources",
+    srcs = glob(["*.cpp", "*.h"], allow_empty = True),
+    visibility = ["//visibility:public"],
+)
+
+cc_test(
+    name = "lexer_test",
+    srcs = ["lexer_test.cpp"],
+    deps = [
+        "//compiler/lexer",
+        "@antlr4//:runtime",
+        "@googletest//:gtest_main",
+    ],
+    visibility = ["//:__pkg__"],
+)
+
+lit_test_suite(
+    name = "lit_tests",
+    srcs = [
+        "illegal_character.dola",
+        "malformed_string.dola",
+        "unterminated_comment.dola",
+    ],
+    cfg = "//test:lit.cfg.py",
+    tools = [
+        "//tools/dola",
+        "@llvm-project//llvm:FileCheck",
+    ],
+)

@@ -1,0 +1,31 @@
+// RUN: not dola --check %s 2>&1 | FileCheck --strict-whitespace %s
+module negative.text_loop;
+
+// CHECK: {{.*}}text_loop_diagnostics.dola:[[@LINE+3]]:21: error: operator operands must have matching types
+// CHECK-NEXT:     fn mixed_concat() { "text" + 1; }
+// CHECK-NEXT:                         ^^^^^^
+fn mixed_concat() { "text" + 1; }
+// CHECK-NEXT: {{.*}}text_loop_diagnostics.dola:[[@LINE+3]]:24: error: arithmetic requires numeric operands
+// CHECK-NEXT:     fn string_subtract() { "left" - "right"; }
+// CHECK-NEXT:                            ^^^^^^
+fn string_subtract() { "left" - "right"; }
+// CHECK-NEXT: {{.*}}text_loop_diagnostics.dola:[[@LINE+3]]:36: error: unknown method `to_string` for `String`
+// CHECK-NEXT:     fn wrong_receiver() { "1".to_string(); }
+// CHECK-NEXT:                                        ^
+fn wrong_receiver() { "1".to_string(); }
+// CHECK-NEXT: {{.*}}text_loop_diagnostics.dola:[[@LINE+3]]:31: error: method `to_string` expects 0 arguments
+// CHECK-NEXT:     fn wrong_arity() { 1.to_string(2); }
+// CHECK-NEXT:                                   ^
+fn wrong_arity() { 1.to_string(2); }
+// CHECK-NEXT: {{.*}}text_loop_diagnostics.dola:[[@LINE+3]]:33: error: expected `Unit`, found `Int`
+// CHECK-NEXT:     fn invalid_loop_body() { loop { 1 } }
+// CHECK-NEXT:                                     ^
+fn invalid_loop_body() { loop { 1 } }
+// CHECK-NEXT: {{.*}}text_loop_diagnostics.dola:[[@LINE+3]]:27: error: `panic` expects 1 argument
+// CHECK-NEXT:     fn panic_missing() { panic(); }
+// CHECK-NEXT:                               ^
+fn panic_missing() { panic(); }
+// CHECK-NEXT: {{.*}}text_loop_diagnostics.dola:[[@LINE+3]]:25: error: expected `String`, found `Int`
+// CHECK-NEXT:     fn panic_type() { panic(1); }
+// CHECK-NEXT:                             ^
+fn panic_type() { panic(1); }

@@ -1,0 +1,31 @@
+load("@rules_cc//cc:cc_test.bzl", "cc_test")
+load("//bazel:lit.bzl", "lit_test_suite")
+
+filegroup(
+    name = "format_sources",
+    srcs = glob(["*.cpp", "*.h"], allow_empty = True),
+    visibility = ["//visibility:public"],
+)
+
+cc_test(
+    name = "compiler_driver_test",
+    srcs = ["compiler_driver_test.cpp"],
+    deps = [
+        "//compiler/driver:compiler_driver",
+        "//compiler/driver:driver_options",
+        "@googletest//:gtest_main",
+        "@llvm-project//llvm:Support",
+    ],
+    visibility = ["//:__pkg__"],
+)
+
+lit_test_suite(
+    name = "lit_tests",
+    srcs = ["driver_errors.dola"],
+    cfg = "//test:lit.cfg.py",
+    data = ["driver_object_main.dola"],
+    tools = [
+        "//tools/dola",
+        "@llvm-project//llvm:FileCheck",
+    ],
+)

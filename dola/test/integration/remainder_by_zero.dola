@@ -1,0 +1,5 @@
+module test.remainder_by_zero;
+
+fn main() -> Int {
+    7 % 0
+}

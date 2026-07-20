@@ -1,0 +1,8 @@
+module diagnostic.aux;
+
+fn invalid() {
+// AUX: diagnostic_ordering_aux.dola:[[@LINE+3]]:23: error: expected `Bool`, found `Int`
+// AUX-NEXT:         let value: Bool = 1;
+// AUX-NEXT:                           ^
+    let value: Bool = 1;
+}

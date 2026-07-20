@@ -1,0 +1,11 @@
+module test.collections;
+
+fn main() -> Int {
+    var values = [1, 2];
+    values = values.push(3);
+    let tail = values.take_last(99);
+    var table = Map[String, Int]();
+    table = table.insert("answer", tail.length());
+    let answer = match table.get("answer") { None => 0, Some(value) => value, };
+    if values.get(-1) == None && answer == 3 && values.length() == 3 { 0 } else { 1 }
+}

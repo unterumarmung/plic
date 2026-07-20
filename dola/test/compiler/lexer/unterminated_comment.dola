@@ -1,0 +1,6 @@
+// RUN: not dola --check %s 2>&1 | FileCheck --strict-whitespace %s
+module lexer.unterminated_comment;
+// CHECK: unterminated_comment.dola:[[@LINE+3]]:1: error: mismatched input '/' expecting {<EOF>, 'use', 'pub', 'fn', 'record', 'enum'}
+// CHECK-NEXT:     /* unterminated
+// CHECK-NEXT:     ^
+/* unterminated

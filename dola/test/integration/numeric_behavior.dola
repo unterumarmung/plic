@@ -1,0 +1,7 @@
+module test.numeric_behavior;
+
+fn main() -> Int {
+    let floating = 1.5 * 2.0;
+    let boolean = !false && (2 < 3);
+    if floating == 3.0 && boolean { 0 } else { 1 }
+}

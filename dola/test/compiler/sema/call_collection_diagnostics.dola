@@ -1,0 +1,90 @@
+// RUN: not dola --check %s 2>&1 | FileCheck --strict-whitespace %s
+module negative.calls;
+
+fn takes_int(value: Int) {}
+
+fn calls() {
+// CHECK: call_collection_diagnostics.dola:[[@LINE+3]]:14: error: function `takes_int` expects 1 arguments, found 0
+// CHECK-NEXT:         takes_int();
+// CHECK-NEXT:                  ^
+    takes_int();
+// CHECK-NEXT: call_collection_diagnostics.dola:[[@LINE+3]]:15: error: expected `Int`, found `Bool`
+// CHECK-NEXT:         takes_int(true);
+// CHECK-NEXT:                   ^^^^
+    takes_int(true);
+    (takes_int)(1);
+// CHECK-NEXT: call_collection_diagnostics.dola:[[@LINE+6]]:5: error: `std.io` is not imported
+// CHECK-NEXT:         io.println();
+// CHECK-NEXT:         ^^
+// CHECK-NEXT: call_collection_diagnostics.dola:[[@LINE+3]]:15: error: `io.println` expects 1 argument
+// CHECK-NEXT:         io.println();
+// CHECK-NEXT:                   ^
+    io.println();
+// CHECK-NEXT: call_collection_diagnostics.dola:[[@LINE+6]]:5: error: `std.io` is not imported
+// CHECK-NEXT:         io.print(1);
+// CHECK-NEXT:         ^^
+// CHECK-NEXT: call_collection_diagnostics.dola:[[@LINE+3]]:14: error: expected `String`, found `Int`
+// CHECK-NEXT:         io.print(1);
+// CHECK-NEXT:                  ^
+    io.print(1);
+}
+
+fn constructors() {
+// CHECK-NEXT: call_collection_diagnostics.dola:[[@LINE+3]]:16: error: `None` requires an expected `Option` type
+// CHECK-NEXT:         let none = None;
+// CHECK-NEXT:                    ^^^^
+    let none = None;
+// CHECK-NEXT: call_collection_diagnostics.dola:[[@LINE+3]]:25: error: `Some` requires an expected `Option` type
+// CHECK-NEXT:         let some: Int = Some(1);
+// CHECK-NEXT:                             ^
+    let some: Int = Some(1);
+// CHECK-NEXT: call_collection_diagnostics.dola:[[@LINE+3]]:7: error: `Ok` requires an expected `Result` type
+// CHECK-NEXT:         Ok(1);
+// CHECK-NEXT:           ^
+    Ok(1);
+// CHECK-NEXT: call_collection_diagnostics.dola:[[@LINE+3]]:9: error: `Some` expects 1 argument
+// CHECK-NEXT:         Some();
+// CHECK-NEXT:             ^
+    Some();
+}
+
+fn collections() {
+// CHECK-NEXT: call_collection_diagnostics.dola:[[@LINE+3]]:17: error: empty list requires an expected `List` type
+// CHECK-NEXT:         let empty = [];
+// CHECK-NEXT:                     ^
+    let empty = [];
+// CHECK-NEXT: call_collection_diagnostics.dola:[[@LINE+3]]:21: error: expected `Int`, found `Bool`
+// CHECK-NEXT:         let mixed = [1, true];
+// CHECK-NEXT:                         ^^^^
+    let mixed = [1, true];
+// CHECK-NEXT: call_collection_diagnostics.dola:[[@LINE+3]]:23: error: map key type must be `Int` or `String`
+// CHECK-NEXT:         let invalid_map = Map[Bool, Int]();
+// CHECK-NEXT:                           ^^^
+    let invalid_map = Map[Bool, Int]();
+    let values = [1];
+// CHECK-NEXT: call_collection_diagnostics.dola:[[@LINE+3]]:19: error: unknown method `unknown` for `List[Int]`
+// CHECK-NEXT:         values.unknown();
+// CHECK-NEXT:                       ^
+    values.unknown();
+// CHECK-NEXT: call_collection_diagnostics.dola:[[@LINE+3]]:15: error: method `get` expects 1 arguments
+// CHECK-NEXT:         values.get();
+// CHECK-NEXT:                   ^
+    values.get();
+// CHECK-NEXT: call_collection_diagnostics.dola:[[@LINE+3]]:16: error: expected `Int`, found `Bool`
+// CHECK-NEXT:         values.get(true);
+// CHECK-NEXT:                    ^^^^
+    values.get(true);
+// CHECK-NEXT: call_collection_diagnostics.dola:[[@LINE+3]]:17: error: expected `Int`, found `Bool`
+// CHECK-NEXT:         values.push(false);
+// CHECK-NEXT:                     ^^^^^
+    values.push(false);
+    let map = Map[String, Int]();
+// CHECK-NEXT: call_collection_diagnostics.dola:[[@LINE+3]]:18: error: expected `String`, found `Int`
+// CHECK-NEXT:         map.contains(1);
+// CHECK-NEXT:                      ^
+    map.contains(1);
+// CHECK-NEXT: call_collection_diagnostics.dola:[[@LINE+3]]:15: error: method `insert` expects 2 arguments
+// CHECK-NEXT:         map.insert("key");
+// CHECK-NEXT:                   ^
+    map.insert("key");
+}

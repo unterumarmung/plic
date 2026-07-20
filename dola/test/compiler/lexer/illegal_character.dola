@@ -1,0 +1,8 @@
+// RUN: not dola --check %s 2>&1 | FileCheck --strict-whitespace %s
+module lexer.illegal_character;
+fn main() {
+// CHECK: illegal_character.dola:[[@LINE+3]]:5: error: token recognition error at: '@'
+// CHECK-NEXT:         @;
+// CHECK-NEXT:         ^
+    @;
+}

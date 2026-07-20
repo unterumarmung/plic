@@ -1,0 +1,70 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+exports_files([".clang-tidy"], visibility = ["//visibility:public"])
+
+filegroup(
+    name = "format_sources",
+    srcs = glob(["*.cpp", "*.h"]),
+    visibility = ["//visibility:public"],
+)
+
+genrule(
+    name = "generated_parser",
+    srcs = [
+        "dola_parser.g4",
+        "//compiler/lexer:dola_lexer.tokens",
+    ],
+    outs = [
+        "dola_parser.cpp",
+        "dola_parser.h",
+        "dola_parserBaseVisitor.cpp",
+        "dola_parserBaseVisitor.h",
+        "dola_parserVisitor.cpp",
+        "dola_parserVisitor.h",
+    ],
+    cmd = "$(location //tools/antlr:antlr) -Dlanguage=Cpp -visitor -no-listener -Xexact-output-dir -lib $$(dirname $(location //compiler/lexer:dola_lexer.tokens)) -o $(@D) $(location dola_parser.g4)",
+    tools = ["//tools/antlr:antlr"],
+)
+
+cc_library(
+    name = "generated_parser_library",
+    srcs = [
+        ":dola_parser.cpp",
+        ":dola_parserBaseVisitor.cpp",
+        ":dola_parserVisitor.cpp",
+    ],
+    hdrs = [
+        ":dola_parser.h",
+        ":dola_parserBaseVisitor.h",
+        ":dola_parserVisitor.h",
+    ],
+    includes = ["."],
+    deps = [
+        "//compiler/lexer",
+        "@antlr4//:runtime",
+    ],
+)
+
+cc_library(
+    name = "syntax",
+    srcs = [
+        "ast.cpp",
+        "ast_analysis.cpp",
+        "ast_printer.cpp",
+        "parser.cpp",
+    ],
+    hdrs = [
+        "ast.h",
+        "ast_analysis.h",
+        "parser.h",
+    ],
+    include_prefix = "dola",
+    strip_include_prefix = ".",
+    deps = [
+        ":generated_parser_library",
+        "//compiler/lexer",
+        "//compiler/support",
+        "@antlr4//:runtime",
+    ],
+    visibility = ["//visibility:public"],
+)

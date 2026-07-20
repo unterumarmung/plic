@@ -1,0 +1,120 @@
+load("@aspect_rules_lint//format:defs.bzl", "format_multirun", "format_test")
+load("@rules_rust//rust:defs.bzl", "rust_clippy", "rustfmt_test")
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
+load("//bazel:quality.bzl", "clang_tidy_test")
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    ".clang-format",
+    ".clang-tidy",
+    "rustfmt.toml",
+])
+
+CPP_SOURCES = [
+    "//compiler/driver:format_sources",
+    "//compiler/lowering:format_sources",
+    "//compiler/mlir:format_sources",
+    "//compiler/sema:format_sources",
+    "//compiler/support:format_sources",
+    "//compiler/syntax:format_sources",
+    "//runtime:format_sources",
+    "//test/compiler/driver:format_sources",
+    "//test/compiler/lexer:format_sources",
+    "//test/compiler/mlir:format_sources",
+    "//test/compiler/sema:format_sources",
+    "//test/compiler/support:format_sources",
+    "//test/compiler/syntax:format_sources",
+    "//test/runtime:format_sources",
+    "//tools/dola:format_sources",
+    "//tools/dola-opt:format_sources",
+]
+
+format_multirun(
+    name = "format",
+    cc = "@llvm-project//clang:clang-format",
+    rust = "@rules_rust//tools/upstream_wrapper:rustfmt",
+    tags = ["manual"],
+)
+
+format_test(
+    name = "cpp_format_check",
+    srcs = CPP_SOURCES,
+    cc = "@llvm-project//clang:clang-format",
+    fix_target = ":format",
+    tags = ["manual"],
+)
+
+rustfmt_test(
+    name = "rust_format_check",
+    targets = [
+        "//runtime:runtime_lib",
+        "//test/runtime:runtime_test",
+    ],
+    tags = ["manual"],
+)
+
+clang_tidy_test(
+    name = "clang_tidy_check",
+    srcs = [
+        "//compiler/driver:compiler_driver",
+        "//compiler/driver:driver_options",
+        "//compiler/lowering",
+        "//compiler/mlir:dialect",
+        "//compiler/mlir:mlir_gen",
+        "//compiler/sema",
+        "//compiler/support",
+        "//compiler/syntax",
+        "//test/compiler/driver:compiler_driver_test",
+        "//test/compiler/lexer:lexer_test",
+        "//test/compiler/mlir:mlir_api_test",
+        "//test/compiler/sema:sema_test",
+        "//test/compiler/syntax:syntax_test",
+        "//test/runtime:abi_cpp_test",
+        "//test/runtime:runtime_abi_test",
+        "//test/runtime:runtime_failure_probe",
+        "//tools/dola",
+        "//tools/dola-opt",
+    ],
+    tags = ["manual"],
+)
+
+rust_clippy(
+    name = "rust_clippy_check",
+    deps = ["//runtime:runtime_lib"],
+    tags = ["manual"],
+)
+
+sh_test(
+    name = "rust_clippy_test",
+    srcs = ["//bazel:quality_pass.sh"],
+    data = [":rust_clippy_check"],
+    tags = ["manual"],
+)
+
+test_suite(
+    name = "format_check",
+    tests = [
+        ":cpp_format_check",
+        ":rust_format_check",
+    ],
+    tags = ["manual"],
+)
+
+test_suite(
+    name = "lint",
+    tests = [
+        ":clang_tidy_check",
+        ":rust_clippy_test",
+    ],
+    tags = ["manual"],
+)
+
+test_suite(
+    name = "quality",
+    tests = [
+        ":format_check",
+        ":lint",
+    ],
+    tags = ["manual"],
+)

@@ -1,0 +1,37 @@
+module examples.transport;
+
+use std.io;
+use std.transport;
+
+fn serve(listener: Listener[String, String]) -> Result[Unit, TransportError] {
+  let connection = listener.accept()?;
+  let request = connection.receive()?;
+  match request {
+    Some(message) => connection.send(message)?,
+    None => (),
+  };
+  connection.close();
+  Ok(())
+}
+
+fn exchange() -> Result[Unit, TransportError] {
+  let listener = transport.listen[String, String]("127.0.0.1:0")?;
+  let address = listener.local_address()?;
+  let server = spawn serve(listener);
+  let connection = transport.connect[String, String](address)?;
+  connection.send("typed echo")?;
+  let response = connection.receive()?;
+  match response {
+    Some(message) => io.println(message),
+    None => (),
+  };
+  connection.close();
+  let completed = server.join();
+  listener.close();
+  Ok(())
+}
+
+fn main() -> Unit {
+  let result = exchange();
+  io.println("transport complete");
+}

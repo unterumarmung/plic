@@ -1,0 +1,158 @@
+module chat.client;
+
+use chat.protocol;
+use std.io;
+use std.time;
+use std.transport;
+
+fn show_message(message: protocol.Message, history: Bool) -> Unit {
+  if history {
+    io.print("HISTORY ");
+  } else {
+    io.print("MESSAGE ");
+  };
+  io.print(message.author_name);
+  io.print(": ");
+  io.println(message.text);
+}
+
+fn show_event(event: protocol.ServerMessage) -> Unit {
+  match event {
+    protocol.ServerMessage.Joined(id) => {
+      io.println("JOINED " + id.to_string());
+    },
+    protocol.ServerMessage.UserJoined(id, name) => {
+      io.print("USER_JOINED ");
+      io.println(id.to_string() + " " + name);
+    },
+    protocol.ServerMessage.MessagePosted(message) => show_message(message, false),
+    protocol.ServerMessage.HistoryResult(messages) => {
+      io.println("HISTORY_BEGIN");
+      for message in messages {
+        show_message(message, true);
+      }
+      io.println("HISTORY_END");
+    },
+    protocol.ServerMessage.Users(users) => {
+      io.println("USERS_BEGIN");
+      for user in users {
+        io.println("USER " + user.id.to_string() + " " + user.name);
+      }
+      io.println("USERS_END");
+    },
+    protocol.ServerMessage.DirectMessage(id, name, text) => {
+      io.println("DIRECT " + id.to_string() + " " + name + ": " + text);
+    },
+    protocol.ServerMessage.UserLeft(id) => {
+      io.println("USER_LEFT " + id.to_string());
+    },
+    protocol.ServerMessage.Rejected(message) => {
+      io.print("REJECTED ");
+      io.println(message);
+    },
+  }
+}
+
+fn receive_events(
+  connection: Connection[protocol.ServerMessage, protocol.ClientMessage]
+) -> Unit {
+  var running = true;
+  while running {
+    match connection.receive() {
+      Ok(Some(event)) => show_event(event),
+      Ok(None) => { running = false; },
+      Err(_) => { running = false; },
+    };
+  }
+}
+
+fn send_command(
+  connection: Connection[protocol.ServerMessage, protocol.ClientMessage],
+  line: String,
+  command: String,
+  argument: String
+) -> Unit {
+  if command == "/history" {
+    match Int.parse(argument) {
+      Ok(count) => {
+        let sent = connection.send(protocol.ClientMessage.History(count));
+      },
+      Err(_) => io.println("REJECTED invalid history count"),
+    };
+    return;
+  };
+  if command == "/msg" {
+    match argument.split_once(" ") {
+      Some(parts) => {
+        let sent = connection.send(
+          protocol.ClientMessage.Direct(parts.0, parts.1)
+        );
+      },
+      None => io.println("REJECTED malformed /msg command"),
+    };
+    return;
+  };
+  let sent = connection.send(protocol.ClientMessage.Post(line));
+}
+
+fn send_line(
+  connection: Connection[protocol.ServerMessage, protocol.ClientMessage],
+  line: String
+) -> Bool {
+  if line == "/quit" {
+    let sent = connection.send(protocol.ClientMessage.Leave);
+    return false;
+  };
+  if line == "/users" {
+    let sent = connection.send(protocol.ClientMessage.Users);
+    return true;
+  };
+  match line.split_once(" ") {
+    Some(parts) => send_command(connection, line, parts.0, parts.1),
+    None => {
+      let sent = connection.send(protocol.ClientMessage.Post(line));
+    },
+  };
+  true
+}
+
+fn run_client(
+  connection: Connection[protocol.ServerMessage, protocol.ClientMessage],
+  name: String
+) -> Unit {
+  let joined = connection.send(protocol.ClientMessage.Join(name));
+  match joined {
+    Ok(_) => (),
+    Err(_) => {
+      io.println("CHAT_SEND_FAILED");
+      return;
+    },
+  };
+  let reader = spawn receive_events(connection);
+  var running = true;
+  while running {
+    match io.read_line() {
+      Ok(line) => { running = send_line(connection, line); },
+      Err(_) => { running = false; },
+    };
+  }
+  time.sleep_ms(100);
+  connection.close();
+  let completed = reader.join();
+}
+
+fn main() -> Unit {
+  match io.read_line() {
+    Err(_) => io.println("CHAT_INPUT_FAILED"),
+    Ok(address) => match io.read_line() {
+      Err(_) => io.println("CHAT_INPUT_FAILED"),
+      Ok(name) => match transport.connect[
+        protocol.ServerMessage,
+        protocol.ClientMessage
+      ](address) {
+        Ok(connection) => run_client(connection, name),
+        Err(_) => io.println("CHAT_CONNECT_FAILED"),
+      },
+    },
+  };
+}

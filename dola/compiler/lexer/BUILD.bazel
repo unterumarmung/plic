@@ -1,0 +1,23 @@
+load("@rules_cc//cc:cc_library.bzl", "cc_library")
+
+genrule(
+    name = "generated_lexer",
+    srcs = ["dola_lexer.g4"],
+    outs = [
+        "dola_lexer.cpp",
+        "dola_lexer.h",
+        "dola_lexer.tokens",
+    ],
+    cmd = "$(location //tools/antlr:antlr) -Dlanguage=Cpp -no-listener -Xexact-output-dir -o $(@D) $(location dola_lexer.g4)",
+    tools = ["//tools/antlr:antlr"],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "lexer",
+    srcs = [":dola_lexer.cpp"],
+    hdrs = [":dola_lexer.h"],
+    includes = ["."],
+    deps = ["@antlr4//:runtime"],
+    visibility = ["//visibility:public"],
+)
